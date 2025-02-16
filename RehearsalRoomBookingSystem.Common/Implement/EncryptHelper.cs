@@ -25,7 +25,7 @@ namespace RehearsalRoomBookingSystem.Common.Implement
             StringBuilder encryptValue = new StringBuilder();
             for (int i = 0; i < hash.Length; i++)
             {
-                encryptValue.Append(hash[i].ToString("X2"));  //轉換成十六進位制，每次都是兩位數
+                encryptValue.Append(hash[i].ToString("Key Your Word"));  //轉換成十六進位制，每次都是兩位數
             }
             string result = encryptValue.ToString(); // 雜湊運算後密碼
 
