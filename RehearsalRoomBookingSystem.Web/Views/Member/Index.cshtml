@@ -1,0 +1,124 @@
+﻿@using RehearsalRoomBookingSystem.Web.Models.ViewModels
+@model MemberViewModel
+
+@{
+    ViewBag.Title = "會員資料";
+}
+
+<h1>會員資料</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Members[0].Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Members[0].Phone)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Members[0].Card_Available_Hours)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Members[0].Memo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Members[0].UpdateUser)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Members[0].UpdateDate)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Members)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Phone)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Card_Available_Hours)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Memo)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UpdateUser)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UpdateDate)
+                </td>
+                <td>
+                    <input id="use-@item.MemberID" type="number" style="width: 80px;" min="0" />
+                    <button class="btn btn-success" asp-action="UseRehearsalCardHours" id="@item.MemberID">使用</button>
+                    <button class="btn btn-danger" asp-action="BuyRehearsalCardHours" id="@item.MemberID">購買</button>
+                    <button class="btn btn-info" asp-action="Edit" id="@item.MemberID">明細</button>
+                    <button class="btn btn-primary" asp-action="Edit" id="@item.MemberID">修改資料</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    $(document).ready(function () {
+        // 當點擊使用按鈕時
+        $('.btn-success').click(function (e) {
+            e.preventDefault();
+
+            // 取得會員ID
+            var memberId = $(this).attr('id');
+
+            // 設定會員ID到Modal的隱藏欄位
+            $('#memberId').val(memberId);
+
+            // 顯示Modal
+            var useCardTimeModal = new bootstrap.Modal(document.getElementById('useCardTimeModal'));
+            useCardTimeModal.show();
+        });
+
+        // 當點擊確認使用按鈕時
+        $('#confirmUseTime').click(function () {
+            var memberId = $('#memberId').val();
+            var useHours = $('#useHours').val();
+
+            // 驗證輸入
+            if (!useHours || useHours <= 0) {
+                alert('請輸入有效的使用時數');
+                return;
+            }
+
+            // 發送 AJAX 請求
+            $.ajax({
+                url: '@Url.Action("UseCardTime", "Member")',
+                type: 'POST',
+                data: JSON.stringify({
+                    memberId: parseInt(memberId),
+                    useHours: parseInt(useHours)
+                }),
+                contentType: 'application/json',
+                success: function (result) {
+                    if (result.success) {
+                        // 更新頁面上的剩餘時數
+                        alert('使用成功！剩餘時數：' + result.remainingHours);
+                        location.reload(); // 重新載入頁面以更新資料
+                    } else {
+                        alert(result.message);
+                    }
+                },
+                error: function (xhr) {
+                    alert(xhr.responseJSON ? xhr.responseJSON.message : '處理過程發生錯誤');
+                }
+            });
+
+            // 關閉Modal
+            var modal = bootstrap.Modal.getInstance(document.getElementById('useCardTimeModal'));
+            modal.hide();
+        });
+    });
+</script>

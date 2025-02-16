@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Validator\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RehearsalRoomBookingSystem.Common\RehearsalRoomBookingSystem.Common.csproj" />
+    <ProjectReference Include="..\RehearsalRoomBookingSystem.Repository\RehearsalRoomBookingSystem.Repository.csproj" />
+  </ItemGroup>
+
+</Project>
