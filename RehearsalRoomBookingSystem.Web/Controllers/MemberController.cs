@@ -50,20 +50,15 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
 
                 if (!result.Success)
                 {
-                    return BadRequest(result);
+                    return Ok(result);
                 }
 
-                return Json(result);
+                return Ok(result);
             }
             catch (Exception ex)
             {
                 // 建議加入日誌記錄
-                return BadRequest(new UseCardTimeResult
-                {
-                    Success = false,
-                    Message = "處理過程發生錯誤",
-                    RemainingHours = 0
-                });
+                return BadRequest();
             }
         }
 

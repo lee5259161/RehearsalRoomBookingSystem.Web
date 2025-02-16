@@ -5,6 +5,8 @@
     ViewBag.Title = "會員資料";
 }
 
+@Html.AntiForgeryToken()
+
 <h1>會員資料</h1>
 
 <table class="table">
@@ -54,71 +56,105 @@
                     @Html.DisplayFor(modelItem => item.UpdateDate)
                 </td>
                 <td>
-                    <input id="use-@item.MemberID" type="number" style="width: 80px;" min="0" />
-                    <button class="btn btn-success" asp-action="UseRehearsalCardHours" id="@item.MemberID">使用</button>
-                    <button class="btn btn-danger" asp-action="BuyRehearsalCardHours" id="@item.MemberID">購買</button>
-                    <button class="btn btn-info" asp-action="Edit" id="@item.MemberID">明細</button>
-                    <button class="btn btn-primary" asp-action="Edit" id="@item.MemberID">修改資料</button>
+                    <button class="btn btn-success use-btn" asp-action="UseRehearsalCardHours" id="use_@item.MemberID" data-member-id="@item.MemberID" data-member-name="@item.Name">使用</button>
+                    <button class="btn btn-danger buy-btn" asp-action="BuyRehearsalCardHours" id="buy_@item.MemberID" data-member-id="@item.MemberID">購買</button>
+                    <button class="btn btn-info details-btn" asp-action="Edit" id="details_@item.MemberID" data-member-id="@item.MemberID">明細</button>
+                    <button class="btn btn-primary edit-btn" asp-action="Edit" id="edit_@item.MemberID" data-member-id="@item.MemberID">修改資料</button>
                 </td>
             </tr>
         }
     </tbody>
 </table>
 
-<script>
-    $(document).ready(function () {
-        // 當點擊使用按鈕時
-        $('.btn-success').click(function (e) {
-            e.preventDefault();
 
-            // 取得會員ID
-            var memberId = $(this).attr('id');
+@section Scripts {
+    <!-- 使用練團卡時數的 Modal -->
+    <div class="modal fade" id="useCardTimeModal" tabindex="-1" aria-labelledby="useCardTimeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="useCardTimeModalLabel">使用練團卡時數</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">會員姓名</label>
+                        <p id="memberName" class="form-control-static"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="useHours" class="form-label">使用時數</label>
+                        <input type="number" class="form-control" id="useHours" min="1" value="1">
+                    </div>
+                    <input type="hidden" id="memberId" value="" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirmUseTime">確認使用</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            // 設定會員ID到Modal的隱藏欄位
-            $('#memberId').val(memberId);
+    <script>
+        $(document).ready(function () {
+            // 當點擊使用按鈕時
+            $('.use-btn').click(function (e) {
+                e.preventDefault();
 
-            // 顯示Modal
-            var useCardTimeModal = new bootstrap.Modal(document.getElementById('useCardTimeModal'));
-            useCardTimeModal.show();
-        });
+                // 取得會員ID和姓名
+                var memberId = $(this).data('member-id');
+                var memberName = $(this).data('member-name');
 
-        // 當點擊確認使用按鈕時
-        $('#confirmUseTime').click(function () {
-            var memberId = $('#memberId').val();
-            var useHours = $('#useHours').val();
+                // 設定會員ID到Modal的隱藏欄位
+                $('#memberId').val(memberId);
+                // 設定會員姓名
+                $('#memberName').text(memberName);
 
-            // 驗證輸入
-            if (!useHours || useHours <= 0) {
-                alert('請輸入有效的使用時數');
-                return;
-            }
-
-            // 發送 AJAX 請求
-            $.ajax({
-                url: '@Url.Action("UseCardTime", "Member")',
-                type: 'POST',
-                data: JSON.stringify({
-                    memberId: parseInt(memberId),
-                    useHours: parseInt(useHours)
-                }),
-                contentType: 'application/json',
-                success: function (result) {
-                    if (result.success) {
-                        // 更新頁面上的剩餘時數
-                        alert('使用成功！剩餘時數：' + result.remainingHours);
-                        location.reload(); // 重新載入頁面以更新資料
-                    } else {
-                        alert(result.message);
-                    }
-                },
-                error: function (xhr) {
-                    alert(xhr.responseJSON ? xhr.responseJSON.message : '處理過程發生錯誤');
-                }
+                // 顯示Modal
+                var useCardTimeModal = new bootstrap.Modal(document.getElementById('useCardTimeModal'));
+                useCardTimeModal.show();
             });
 
-            // 關閉Modal
-            var modal = bootstrap.Modal.getInstance(document.getElementById('useCardTimeModal'));
-            modal.hide();
+            // 當點擊確認使用按鈕時
+            $('#confirmUseTime').click(function () {
+                var memberId = $('#memberId').val();
+                var useHours = $('#useHours').val();
+
+                // 驗證輸入
+                if (!useHours || useHours <= 0) {
+                    alert('請輸入有效的使用時數');
+                    return;
+                }
+
+                // 發送 AJAX 請求
+                $.ajax({
+                    url: '@Url.Action("UseCardTime", "Member")',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        memberId: parseInt(memberId),
+                        useHours: parseInt(useHours)
+                    }),
+                    contentType: 'application/json',
+                    headers: {
+                        "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (result) {
+                        if (result.Success) {
+                            alert('使用成功！剩餘時數：' + result.RemainingHours);
+                            location.reload();
+                        } else {
+                            alert(result.Message);
+                        }
+                    },
+                    error: function () {
+                        alert('處理過程發生錯誤');
+                    }
+                });
+
+                // 關閉Modal
+                var modal = bootstrap.Modal.getInstance(document.getElementById('useCardTimeModal'));
+                modal.hide();
+            });
         });
-    });
-</script>
+    </script>
+}

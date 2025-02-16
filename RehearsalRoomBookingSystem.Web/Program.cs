@@ -15,7 +15,12 @@ namespace RehearsalRoomBookingSystem.Web
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews()
+                .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+            }); ;
 
             // °t¸mOptions Pattern
             builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("DatabaseSettings"));
