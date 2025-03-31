@@ -20,9 +20,13 @@ namespace RehearsalRoomBookingSystem.Web.Infrastructure.ServiceCollections
         /// </summary>
         public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
+            // Add HttpContextAccessor
+            services.AddHttpContextAccessor();
+
             // Common
-            services.AddSingleton<DatabaseHelper>();  
-            services.AddSingleton<IEncryptHelper, EncryptHelper>();  
+            services.AddSingleton<DatabaseHelper>();
+            services.AddSingleton<IEncryptHelper, EncryptHelper>();
+            services.AddSingleton<IUserContextHelper, UserContextHelper>();
 
             // Repository
             services.AddScoped<IMemberRepository, MemberRepository>();

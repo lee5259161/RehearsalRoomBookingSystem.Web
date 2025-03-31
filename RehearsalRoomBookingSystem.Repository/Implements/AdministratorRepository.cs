@@ -6,6 +6,8 @@ using RehearsalRoomBookingSystem.Repository.Interface;
 using RehearsalRoomBookingSystem.Repository.Entities;
 using RehearsalRoomBookingSystem.Common.Interface;
 using RehearsalRoomBookingSystem.Common.Implement;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace RehearsalRoomBookingSystem.Repository.Implements
 {
@@ -15,7 +17,9 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         private readonly IEncryptHelper _encryptHelper;
         private const string ENCRYPT_SALT = "RoomBooking2025";
 
-        public AdministratorRepository(IOptions<DatabaseSettings> options, IEncryptHelper encryptHelper)
+        public AdministratorRepository(
+            IOptions<DatabaseSettings> options, 
+            IEncryptHelper encryptHelper)
         {
             _connectionString = options.Value.ConnectionString;
             _encryptHelper = encryptHelper;

@@ -175,7 +175,7 @@ VALUES
                                     INSERT INTO [Administrators] 
                                         ([TypeID], [Name], [Account], [Password], [UpdateUser], [UpdateDate])
                                     VALUES 
-                                        (1, '系統管理員', 'admin', '{defaultPassword}', 'System', datetime('now'))
+                                        (1, '系統管理員', 'admin20', '{defaultPassword}', 'System', datetime('now'))
                                 ");
                             }
 

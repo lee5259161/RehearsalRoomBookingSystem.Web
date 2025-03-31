@@ -5,6 +5,7 @@ using Dapper;
 using RehearsalRoomBookingSystem.Repository.Interface;
 using RehearsalRoomBookingSystem.Repository.Entities;
 using RehearsalRoomBookingSystem.Repository.Entities.ResultEntity;
+using RehearsalRoomBookingSystem.Common.Interface;
 
 namespace RehearsalRoomBookingSystem.Repository.Implements
 {
@@ -12,11 +13,13 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
     {
         private readonly string _databasePath;
         private readonly string _connectionString;
+        private readonly IUserContextHelper _userContextHelper;
 
-        public MemberRepository(IOptions<DatabaseSettings> options)
+        public MemberRepository(IOptions<DatabaseSettings> options, IUserContextHelper userContextHelper)
         {
             _databasePath = options.Value.SqlitePath;
             _connectionString = options.Value.ConnectionString;
+            _userContextHelper = userContextHelper;
         }
 
         /// <summary>
@@ -140,7 +143,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                                 MemberId = memberId,
                                 NewHours = newHours,
                                 UpdateDate = DateTime.Now,
-                                UpdateUser = "System" // 這裡可能需要傳入實際的使用者
+                                UpdateUser = _userContextHelper.GetCurrentUserAccount()
                             },
                             transaction
                         );
@@ -233,7 +236,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                             MemberId = memberId,
                             NewHours = newHours,
                             UpdateDate = DateTime.Now,
-                            UpdateUser = "System" // 或從認證系統獲取當前用戶
+                            UpdateUser = _userContextHelper.GetCurrentUserAccount()
                         };
 
                         var affectedRows = connection.Execute(updateSql, parameters, transaction);
