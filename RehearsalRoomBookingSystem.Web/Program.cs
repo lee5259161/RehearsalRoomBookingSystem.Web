@@ -1,9 +1,6 @@
 using RehearsalRoomBookingSystem.Common.Helpers;
 using RehearsalRoomBookingSystem.Common.Option;
-using RehearsalRoomBookingSystem.Repository.Implements;
-using RehearsalRoomBookingSystem.Repository.Interface;
-using RehearsalRoomBookingSystem.Service.Implements;
-using RehearsalRoomBookingSystem.Service.Interface;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using RehearsalRoomBookingSystem.Web.Infrastructure.ServiceCollections;
 
 namespace RehearsalRoomBookingSystem.Web
@@ -17,23 +14,35 @@ namespace RehearsalRoomBookingSystem.Web
             // Add services to the container.
             builder.Services.AddControllersWithViews()
                 .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.PropertyNamingPolicy = null;
-                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-            }); ;
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                });
 
-            // �t�mOptions Pattern
+            // 設定認證機制
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Auth/Login";
+                    options.LogoutPath = "/Auth/Logout";
+                    options.AccessDeniedPath = "/Auth/AccessDenied";
+                    options.ExpireTimeSpan = TimeSpan.FromHours(12);
+                    options.SlidingExpiration = true;
+                });
+
+            // 設定 Options Pattern
             builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("DatabaseSettings"));
 
-            //Dependency Injection
+            // Dependency Injection
             builder.Services.AddDependencyInjection();
 
             var app = builder.Build();
 
-            //�b�M�ײĤ@���Ұʪ��ɭԡA�ˬdSQLite �ɮ׬O�_�s�b�A�p�G���s�b�N�إ�SQLite �ɮ�
+            // 在系統第一次執行的時候，檢查SQLite 檔案是否存在，如果不存在就建立SQLite 檔案
             var databaseHelper = app.Services.GetRequiredService<DatabaseHelper>();
             databaseHelper.CreateSqlite();
-
+            // 檢查SQLite 是否需更新
+            databaseHelper.MigrateToNextVersion();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
@@ -44,6 +53,8 @@ namespace RehearsalRoomBookingSystem.Web
 
             app.UseRouting();
 
+            // 加入驗證中介軟體
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(

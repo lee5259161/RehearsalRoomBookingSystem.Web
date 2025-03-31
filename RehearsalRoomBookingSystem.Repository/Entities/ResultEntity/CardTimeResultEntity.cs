@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RehearsalRoomBookingSystem.Repository.Entities
+namespace RehearsalRoomBookingSystem.Repository.Entities.ResultEntity
 {
     public class CardTimeResultEntity
     {

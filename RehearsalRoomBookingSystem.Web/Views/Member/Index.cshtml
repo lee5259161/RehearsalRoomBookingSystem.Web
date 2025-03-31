@@ -57,7 +57,7 @@
                 </td>
                 <td>
                     <button class="btn btn-success use-btn" asp-action="UseRehearsalCardHours" id="use_@item.MemberID" data-member-id="@item.MemberID" data-member-name="@item.Name">使用</button>
-                    <button class="btn btn-danger buy-btn" asp-action="BuyRehearsalCardHours" id="buy_@item.MemberID" data-member-id="@item.MemberID">購買</button>
+                    <button class="btn btn-danger buy-btn" asp-action="BuyRehearsalCardHours" id="buy_@item.MemberID" data-member-id="@item.MemberID" data-member-name="@item.Name">購買</button>
                     <button class="btn btn-info details-btn" asp-action="Edit" id="details_@item.MemberID" data-member-id="@item.MemberID">明細</button>
                     <button class="btn btn-primary edit-btn" asp-action="Edit" id="edit_@item.MemberID" data-member-id="@item.MemberID">修改資料</button>
                 </td>
@@ -66,35 +66,34 @@
     </tbody>
 </table>
 
-
-@section Scripts {
-    <!-- 使用練團卡時數的 Modal -->
-    <div class="modal fade" id="useCardTimeModal" tabindex="-1" aria-labelledby="useCardTimeModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="useCardTimeModalLabel">使用練團卡時數</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- 使用練團卡時數的 Modal -->
+<div class="modal fade" id="useCardTimeModal" tabindex="-1" aria-labelledby="useCardTimeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="useCardTimeModalLabel">使用練團卡時數</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">會員姓名</label>
+                    <p id="memberName" class="form-control-static"></p>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">會員姓名</label>
-                        <p id="memberName" class="form-control-static"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label for="useHours" class="form-label">使用時數</label>
-                        <input type="number" class="form-control" id="useHours" min="1" value="1">
-                    </div>
-                    <input type="hidden" id="memberId" value="" />
+                <div class="mb-3">
+                    <label for="useHours" class="form-label">使用時數</label>
+                    <input type="number" class="form-control" id="useHours" min="1" value="1">
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="confirmUseTime">確認使用</button>
-                </div>
+                <input type="hidden" id="memberId" value="" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmUseTime">確認使用</button>
             </div>
         </div>
     </div>
+</div>
 
+@section Scripts {
     <script>
         $(document).ready(function () {
             // 當點擊使用按鈕時
@@ -146,14 +145,49 @@
                             alert(result.Message);
                         }
                     },
-                    error: function () {
-                        alert('處理過程發生錯誤');
+                    error: function (xhr) {
+                        alert(xhr.responseJSON ? xhr.responseJSON.message : '處理過程發生錯誤');
                     }
                 });
 
                 // 關閉Modal
                 var modal = bootstrap.Modal.getInstance(document.getElementById('useCardTimeModal'));
                 modal.hide();
+            });
+
+            // 當點擊購買按鈕時
+            $('.buy-btn').click(function (e) {
+                e.preventDefault();
+
+                var memberId = $(this).data('member-id');
+                var memberName = $(this).data('member-name');
+
+                if (!confirm(memberName + ' 確定要購買10小時的練團時數？')) {
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("BuyCardTime", "Member")',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        memberId: parseInt(memberId)
+                    }),
+                    contentType: 'application/json',
+                    headers: {
+                        "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (result) {
+                        if (result.Success) {
+                            alert('購買成功！目前剩餘時數：' + result.RemainingHours);
+                            location.reload();
+                        } else {
+                            alert(result.Message);
+                        }
+                    },
+                    error: function (xhr) {
+                        alert(xhr.responseJSON ? xhr.responseJSON.message : '處理過程發生錯誤');
+                    }
+                });
             });
         });
     </script>

@@ -4,6 +4,7 @@ using Microsoft.Data.Sqlite;
 using Dapper;
 using RehearsalRoomBookingSystem.Repository.Interface;
 using RehearsalRoomBookingSystem.Repository.Entities;
+using RehearsalRoomBookingSystem.Repository.Entities.ResultEntity;
 
 namespace RehearsalRoomBookingSystem.Repository.Implements
 {
@@ -176,6 +177,93 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                             Message = "處理過程發生錯誤",
                             RemainingHours = 0
                         };
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 增加會員練團卡時數
+        /// </summary>
+        /// <param name="memberId">會員ID</param>
+        /// <returns>處理結果</returns>
+        public BuyCardTimeResultEntity BuyCardTime(int memberId)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        // 1. 檢查會員是否存在並取得目前時數
+                        var sql = @"SELECT Card_Available_Hours 
+                              FROM Members 
+                              WHERE MemberId = @MemberId";
+
+                        var currentHours = connection.QueryFirstOrDefault<decimal?>(
+                            sql,
+                            new { MemberId = memberId },
+                            transaction
+                        );
+
+                        if (!currentHours.HasValue)
+                        {
+                            return new BuyCardTimeResultEntity
+                            {
+                                Success = false,
+                                Message = "找不到會員資料",
+                                RemainingHours = 0
+                            };
+                        }
+
+                        // 2. 計算新的時數
+                        var newHours = currentHours.Value + 10;
+
+                        // 3. 更新會員時數
+                        var updateSql = @"
+                        UPDATE Members 
+                        SET Card_Available_Hours = @NewHours,
+                            UpdateDate = @UpdateDate,
+                            UpdateUser = @UpdateUser
+                        WHERE MemberId = @MemberId";
+
+                        var parameters = new
+                        {
+                            MemberId = memberId,
+                            NewHours = newHours,
+                            UpdateDate = DateTime.Now,
+                            UpdateUser = "System" // 或從認證系統獲取當前用戶
+                        };
+
+                        var affectedRows = connection.Execute(updateSql, parameters, transaction);
+
+                        if (affectedRows <= 0)
+                        {
+                            transaction.Rollback();
+                            return new BuyCardTimeResultEntity
+                            {
+                                Success = false,
+                                Message = "更新時數失敗",
+                                RemainingHours = currentHours.Value
+                            };
+                        }
+
+                        // 4. 提交交易
+                        transaction.Commit();
+
+                        return new BuyCardTimeResultEntity
+                        {
+                            Success = true,
+                            Message = "購買成功",
+                            RemainingHours = newHours
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        // 發生異常時回滾交易
+                        transaction.Rollback();
+                        throw;
                     }
                 }
             }

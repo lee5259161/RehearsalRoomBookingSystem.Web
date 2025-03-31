@@ -21,6 +21,19 @@ namespace RehearsalRoomBookingSystem.Service.Interface
         /// <returns>所有會員資料的集合</returns>
         IEnumerable<MemberDTO> GetCollection();
 
-        CardTimeResultDTO UseCardTime(int memberId, int minutes);
+        /// <summary>
+        /// 扣除會員練團卡時數
+        /// </summary>
+        /// <param name="memberId">會員ID</param>
+        /// <param name="hours">要扣除的小時數</param>
+        /// <returns>處理結果</returns>
+        UseCardTimeResultDTO UseCardTime(int memberId, int minutes);
+       
+        /// <summary>
+        /// 購買會員練團卡時數
+        /// </summary>
+        /// <param name="memberId">會員ID</param>
+        /// <returns>處理結果</returns>
+        BuyCardTimeResultDTO BuyCardTime(int memberId);
     }
 }

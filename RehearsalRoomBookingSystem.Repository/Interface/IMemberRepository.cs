@@ -1,4 +1,5 @@
 ﻿using RehearsalRoomBookingSystem.Repository.Entities;
+using RehearsalRoomBookingSystem.Repository.Entities.ResultEntity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,5 +36,11 @@ namespace RehearsalRoomBookingSystem.Repository.Interface
         /// <param name="minutes">要扣除的小時數</param>
         /// <returns>處理結果</returns>
         CardTimeResultEntity UseCardTime(int memberId, int hours);
+
+        /// <summary>
+        /// 增加會員練團卡時數
+        /// </summary>
+        /// <param name="memberId">會員ID</param>
+        BuyCardTimeResultEntity BuyCardTime(int memberId);
     }
 }

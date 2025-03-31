@@ -8,12 +8,12 @@ using System.Xml.Linq;
 
 namespace RehearsalRoomBookingSystem.Service.DTOs
 {
-    public class CardTimeResultDTO
+    public class UseCardTimeResultDTO
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CardTimeResultDTO"/> class.
+        /// Initializes a new instance of the <see cref="UseCardTimeResultDTO"/> class.
         /// </summary>
-        public CardTimeResultDTO()
+        public UseCardTimeResultDTO()
         {
             Message = string.Empty;
         }

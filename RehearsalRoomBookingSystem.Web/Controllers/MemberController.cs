@@ -6,15 +6,18 @@ using RehearsalRoomBookingSystem.Web.Models.ViewModels;
 using RehearsalRoomBookingSystem.Web.Models.DataModel;
 using RehearsalRoomBookingSystem.Web.Models.Parameter;
 using RehearsalRoomBookingSystem.Web.Models.APIResult;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RehearsalRoomBookingSystem.Web.Controllers
 {
+    [Authorize]
     public class MemberController : Controller
     {
         private readonly IMemberService _memberService;
         private readonly IControllerMapProfile _controllerMapProfile;
+        
         public MemberController(IMemberService memberService, 
-                                IControllerMapProfile controllerMapProfile)
+                              IControllerMapProfile controllerMapProfile)
         {
             _memberService = memberService;
             _controllerMapProfile = controllerMapProfile;
@@ -48,17 +51,38 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
                     Message = serviceResult.Message
                 };
 
-                if (!result.Success)
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult BuyCardTime([FromBody] BuyCardTimeParameter parameter)
+        {
+            try
+            {
+                var serviceResult = _memberService.BuyCardTime(parameter.MemberId);
+
+                var result = new BuyCardTimeResult
                 {
-                    return Ok(result);
-                }
+                    Success = serviceResult.Success,
+                    RemainingHours = serviceResult.RemainingHours,
+                    Message = serviceResult.Message
+                };
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                // 建議加入日誌記錄
-                return BadRequest();
+                return BadRequest(new BuyCardTimeResult
+                {
+                    Success = false,
+                    Message = "處理過程發生錯誤"
+                });
             }
         }
 

@@ -3,6 +3,8 @@ using Microsoft.Data.Sqlite;
 using Dapper;
 using RehearsalRoomBookingSystem.Common.Option;
 using Microsoft.Extensions.Options;
+using RehearsalRoomBookingSystem.Common.Interface;
+using RehearsalRoomBookingSystem.Common.Implement;
 
 namespace RehearsalRoomBookingSystem.Common.Helpers
 {
@@ -10,11 +12,15 @@ namespace RehearsalRoomBookingSystem.Common.Helpers
     {
         private readonly string _databasePath;
         private readonly string _connectionString;
+        private readonly int _SQLiteVersion = 2;
+        private readonly IEncryptHelper _encryptHelper;
+        private const string ENCRYPT_SALT = "RoomBooking2025";
 
-        public DatabaseHelper(IOptions<DatabaseSettings> options)
+        public DatabaseHelper(IOptions<DatabaseSettings> options, IEncryptHelper encryptHelper)
         {
             _databasePath = options.Value.SqlitePath;
             _connectionString = options.Value.ConnectionString;
+            _encryptHelper = encryptHelper;
         }
 
         public void CreateSqlite()
@@ -23,29 +29,55 @@ namespace RehearsalRoomBookingSystem.Common.Helpers
             {
                 using (var conn = new SqliteConnection(_connectionString))
                 {
-                    //會員主表
-                    var _sql = @"
-                CREATE TABLE [Members] (
-                   [MemberID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                   [Name] nvarchar(50) ,
-                   [Phone] varchar(50) ,
-                   [Card_Available_Hours] int,
-                   [Memo] nvarchar(50),
-                   [UpdateUser] nvarchar(50),
-                   [UpdateDate] datetime
-                ); ";
+                    // 建立版本控制表
+                    var sql = @"
+                    CREATE TABLE [DatabaseVersion] (
+                        [Version] INTEGER NOT NULL,
+                        [UpdateDate] datetime NOT NULL DEFAULT (datetime('now'))
+                    );";
 
-                    //會員時數交易紀錄表
-                    _sql += @"
-                CREATE TABLE [MemberTransactions] (
-                   [MemberID] int,
-                   [TransactionHours] int,
-                   [CreateUser] nvarchar(50) COLLATE NOCASE,
-                   [CreateDate] datetime
-                ); ";
+                    // 原有的資料表建立
+                    sql += @"
+                    CREATE TABLE [Members] (
+                       [MemberID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                       [Name] TEXT,
+                       [Phone] TEXT,
+                       [Card_Available_Hours] int,
+                       [Memo] TEXT,
+                       [UpdateUser] TEXT NOT NULL,
+                       [UpdateDate] datetime
+                    );";
 
-                    //測試資料
-                    _sql += @"
+                    //新增一個交易類型的參考表
+                    sql += @"
+                    CREATE TABLE [TransactionTypes] (
+                        [TypeID] int NOT NULL PRIMARY KEY,
+                        [TypeName] TEXT NOT NULL,
+                        [Description] TEXT,
+                        [CreateDate] datetime DEFAULT (datetime('now'))
+                    );";
+
+                    sql += @"
+                    -- 主要的交易記錄表
+                    CREATE TABLE [MemberTransactions] (
+                    [TransactionID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [MemberID] int NOT NULL,
+                    [TypeID] int NOT NULL,
+                    [TransactionHours] int NOT NULL,
+                    [CreateUser] TEXT NOT NULL,
+                    [CreateDate] datetime NOT NULL DEFAULT (datetime('now')),
+                    FOREIGN KEY ([MemberID]) REFERENCES [Members]([MemberID]),  -- 外鍵約束
+                    FOREIGN KEY ([TypeID]) REFERENCES [TransactionTypes]([TypeID]), -- 外鍵約束
+                    CHECK ([TransactionHours] != 0) -- 確保交易時數不為零
+                    );";
+
+                    sql += @"
+                        CREATE INDEX [IX_MemberTransactions_MemberID] ON [MemberTransactions]([MemberID]);
+                        CREATE INDEX [IX_MemberTransactions_Type] ON [MemberTransactions]([TypeID]);
+                        CREATE INDEX [IX_MemberTransactions_CreateDate] ON [MemberTransactions]([CreateDate]);";
+
+                    // 插入測試資料
+                    sql += @"
 INSERT INTO [Members] ([Name], [Phone], [Card_Available_Hours], [Memo], [UpdateUser], [UpdateDate])
 VALUES
     ('John Doe', '123456789', 10, 'Test Memo 1', 'Admin', datetime('now')),
@@ -70,7 +102,98 @@ VALUES
     ('Emma King', '333333333', 8, 'Test Memo 20', 'Admin', datetime('now'));
 ";
 
-                    conn.Execute(_sql);
+                    // 設定初始版本號為 1
+                    sql += @"
+                    INSERT INTO [DatabaseVersion] ([Version], [UpdateDate])
+                    VALUES (1, datetime('now'));";
+
+                    conn.Execute(sql);
+                }
+            }
+        }
+
+        public void MigrateToNextVersion()
+        {
+            using (var conn = new SqliteConnection(_connectionString))
+            {
+                conn.Open();
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // 檢查當前版本
+                        var currentVersion = conn.QuerySingle<int>("SELECT Version FROM DatabaseVersion");
+                        if (currentVersion != _SQLiteVersion)
+                        {
+                            // 修改 Members 表的 Memo 欄位
+                            conn.Execute(@"
+                                -- 創建臨時表
+                                CREATE TABLE [Members_Temp] (
+                                   [MemberID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                                   [Name] TEXT,
+                                   [Phone] TEXT,
+                                   [Card_Available_Hours] int,
+                                   [Memo] TEXT,
+                                   [UpdateUser] TEXT,
+                                   [UpdateDate] datetime DEFAULT (datetime('now'))
+                                );
+
+                                -- 複製資料到臨時表
+                                INSERT INTO [Members_Temp]
+                                SELECT * FROM [Members];
+
+                                -- 刪除原表
+                                DROP TABLE [Members];
+
+                                -- 重命名臨時表
+                                ALTER TABLE [Members_Temp] RENAME TO [Members];
+                            ");
+
+                            // 檢查是否已經存在 Administrators 表格
+                            var tableExists = conn.QueryFirstOrDefault<int>(
+                                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='Administrators'"
+                            );
+
+                            if (tableExists == 0)
+                            {
+                                // 建立管理人員資料表
+                                conn.Execute(@"
+                                    CREATE TABLE [Administrators] (
+                                    [AdminID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                                    [TypeID] int NOT NULL,
+                                    [Name] TEXT,
+                                    [Account] TEXT NOT NULL UNIQUE,
+                                    [Password] TEXT NOT NULL,
+                                    [UpdateUser] TEXT,
+                                    [UpdateDate] datetime DEFAULT (datetime('now'))
+                                    );
+                                ");
+
+                                // 建立預設管理員帳號 (admin/admin)
+                                var defaultPassword = _encryptHelper.SHAEncrypt("admin", ENCRYPT_SALT);
+                                conn.Execute($@"
+                                    INSERT INTO [Administrators] 
+                                        ([TypeID], [Name], [Account], [Password], [UpdateUser], [UpdateDate])
+                                    VALUES 
+                                        (1, '系統管理員', 'admin', '{defaultPassword}', 'System', datetime('now'))
+                                ");
+                            }
+
+                            // 更新版本號
+                            conn.Execute(@"
+                                UPDATE [DatabaseVersion]
+                                SET [Version] = 2,
+                                    [UpdateDate] = datetime('now')
+                            ");
+
+                            transaction.Commit();
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
                 }
             }
         }

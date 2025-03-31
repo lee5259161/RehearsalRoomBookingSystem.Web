@@ -1,4 +1,6 @@
 ﻿using RehearsalRoomBookingSystem.Common.Helpers;
+using RehearsalRoomBookingSystem.Common.Implement;
+using RehearsalRoomBookingSystem.Common.Interface;
 using RehearsalRoomBookingSystem.Repository.Implements;
 using RehearsalRoomBookingSystem.Repository.Interface;
 using RehearsalRoomBookingSystem.Service.Implements;
@@ -19,13 +21,16 @@ namespace RehearsalRoomBookingSystem.Web.Infrastructure.ServiceCollections
         public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
             // Common
-            services.AddSingleton<DatabaseHelper>();
+            services.AddSingleton<DatabaseHelper>();  
+            services.AddSingleton<IEncryptHelper, EncryptHelper>();  
 
             // Repository
             services.AddScoped<IMemberRepository, MemberRepository>();
+            services.AddScoped<IAdministratorRepository, AdministratorRepository>();
 
             // Service
             services.AddScoped<IMemberService, MemberService>();
+            services.AddScoped<IAdministratorService, AdministratorService>();
 
             // MappingProfile
             services.AddScoped<IServiceMapProfile, ServiceMapProfile>();

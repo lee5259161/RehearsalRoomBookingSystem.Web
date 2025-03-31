@@ -58,14 +58,14 @@ namespace RehearsalRoomBookingSystem.Service.Implements
         /// <param name="memberId">會員ID</param>
         /// <param name="hours">要扣除的小時數</param>
         /// <returns>處理結果</returns>
-        public CardTimeResultDTO UseCardTime(int memberId, int hours)
+        public UseCardTimeResultDTO UseCardTime(int memberId, int hours)
         {
             try
             {
                 // 1. 驗證輸入參數
                 if (hours <= 0)
                 {
-                    return new CardTimeResultDTO
+                    return new UseCardTimeResultDTO
                     {
                         Success = false,
                         Message = "扣除時數必須大於0",
@@ -77,7 +77,7 @@ namespace RehearsalRoomBookingSystem.Service.Implements
                 var resultEntity = _memberRepository.UseCardTime(memberId, hours);
 
                 // 3. 轉換 Entity 到 DTO 並回傳結果
-                return new CardTimeResultDTO
+                return new UseCardTimeResultDTO
                 {
                     Success = resultEntity.Success,
                     Message = resultEntity.Message,
@@ -86,8 +86,49 @@ namespace RehearsalRoomBookingSystem.Service.Implements
             }
             catch (Exception ex)
             {
-                // 可以加入日誌記錄
-                return new CardTimeResultDTO
+                return new UseCardTimeResultDTO
+                {
+                    Success = false,
+                    Message = "處理過程發生錯誤",
+                    RemainingHours = 0
+                };
+            }
+        }
+
+        /// <summary>
+        /// 購買會員練團卡時數
+        /// </summary>
+        /// <param name="memberId">會員ID</param>
+        /// <returns>處理結果</returns>
+        public BuyCardTimeResultDTO BuyCardTime(int memberId)
+        {
+            try
+            {
+                // 1. 驗證輸入參數
+                if (memberId <= 0)
+                {
+                    return new BuyCardTimeResultDTO
+                    {
+                        Success = false,
+                        Message = "無效的會員ID",
+                        RemainingHours = 0
+                    };
+                }
+
+                // 2. 呼叫 Repository 層的方法執行增加時數
+                var resultEntity = _memberRepository.BuyCardTime(memberId);
+
+                // 3. 轉換 Entity 到 DTO 並回傳結果
+                return new BuyCardTimeResultDTO
+                {
+                    Success = resultEntity.Success,
+                    Message = resultEntity.Message,
+                    RemainingHours = resultEntity.RemainingHours
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BuyCardTimeResultDTO
                 {
                     Success = false,
                     Message = "處理過程發生錯誤",
