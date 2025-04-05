@@ -53,9 +53,16 @@ namespace RehearsalRoomBookingSystem.Common.Helpers
                     CREATE TABLE [TransactionTypes] (
                         [TypeID] int NOT NULL PRIMARY KEY,
                         [TypeName] TEXT NOT NULL,
-                        [Description] TEXT,
-                        [CreateDate] datetime DEFAULT (datetime('now'))
-                    );";
+                        [Description] TEXT NOT NULL
+                    );
+
+                    -- 插入交易類型定義
+                    INSERT INTO [TransactionTypes] ([TypeID], [TypeName], [Description])
+                    VALUES 
+                        (1, '購買時數', '會員購買預付時數'),
+                        (2, '使用時數', '會員使用預付時數'),
+                        (3, '還原購買', '還原會員購買時數紀錄'),
+                        (4, '還原使用', '還原會員使用時數紀錄');";
 
                     sql += @"
                     -- 主要的交易記錄表

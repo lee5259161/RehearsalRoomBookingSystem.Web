@@ -2,6 +2,10 @@ using RehearsalRoomBookingSystem.Common.Helpers;
 using RehearsalRoomBookingSystem.Common.Option;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using RehearsalRoomBookingSystem.Web.Infrastructure.ServiceCollections;
+using Microsoft.Extensions.Hosting;
+using Serilog;
+using Serilog.Events;
+using Serilog.AspNetCore;
 
 namespace RehearsalRoomBookingSystem.Web
 {
@@ -10,6 +14,12 @@ namespace RehearsalRoomBookingSystem.Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Configure Serilog
+            builder.Host.UseSerilog((context, services, configuration) => configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext());
 
             // Add services to the container.
             builder.Services.AddControllersWithViews()
@@ -51,6 +61,13 @@ namespace RehearsalRoomBookingSystem.Web
             }
             app.UseStaticFiles();
 
+            // Create Logs directory if it doesn't exist
+            var logDir = Path.Combine(app.Environment.ContentRootPath, "Logs");
+            if (!Directory.Exists(logDir))
+            {
+                Directory.CreateDirectory(logDir);
+            }
+
             app.UseRouting();
 
             // 加入驗證中介軟體
@@ -61,7 +78,19 @@ namespace RehearsalRoomBookingSystem.Web
                 name: "default",
                 pattern: "{controller=Member}/{action=Index}/{id?}");
 
-            app.Run();
+            try
+            {
+                Log.Information("Starting web application");
+                app.Run();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Application terminated unexpectedly");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
     }
 }

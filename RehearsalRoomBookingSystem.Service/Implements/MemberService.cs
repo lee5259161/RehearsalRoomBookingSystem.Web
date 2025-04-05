@@ -2,6 +2,7 @@
 using RehearsalRoomBookingSystem.Service.Interface;
 using RehearsalRoomBookingSystem.Repository.Interface;
 using RehearsalRoomBookingSystem.Service.MappingProfile;
+using Serilog;
 
 namespace RehearsalRoomBookingSystem.Service.Implements
 {
@@ -65,6 +66,7 @@ namespace RehearsalRoomBookingSystem.Service.Implements
                 // 1. 驗證輸入參數
                 if (hours <= 0)
                 {
+                    Log.Warning("扣除時數必須大於0。MemberId: {MemberId}, Hours: {Hours}", memberId, hours);
                     return new UseCardTimeResultDTO
                     {
                         Success = false,
@@ -76,6 +78,12 @@ namespace RehearsalRoomBookingSystem.Service.Implements
                 // 2. 呼叫 Repository 層的方法執行扣除時數
                 var resultEntity = _memberRepository.UseCardTime(memberId, hours);
 
+                if (!resultEntity.Success)
+                {
+                    Log.Warning("扣除會員練團卡時數失敗。MemberId: {MemberId}, Hours: {Hours}, Message: {Message}", 
+                        memberId, hours, resultEntity.Message);
+                }
+
                 // 3. 轉換 Entity 到 DTO 並回傳結果
                 return new UseCardTimeResultDTO
                 {
@@ -86,6 +94,7 @@ namespace RehearsalRoomBookingSystem.Service.Implements
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "扣除會員練團卡時數服務發生錯誤。MemberId: {MemberId}, Hours: {Hours}", memberId, hours);
                 return new UseCardTimeResultDTO
                 {
                     Success = false,
@@ -107,6 +116,7 @@ namespace RehearsalRoomBookingSystem.Service.Implements
                 // 1. 驗證輸入參數
                 if (memberId <= 0)
                 {
+                    Log.Warning("無效的會員ID。MemberId: {MemberId}", memberId);
                     return new BuyCardTimeResultDTO
                     {
                         Success = false,
@@ -128,6 +138,7 @@ namespace RehearsalRoomBookingSystem.Service.Implements
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "購買會員練團卡時數服務發生錯誤。MemberId: {MemberId}", memberId);
                 return new BuyCardTimeResultDTO
                 {
                     Success = false,

@@ -7,6 +7,7 @@ using RehearsalRoomBookingSystem.Web.Models.DataModel;
 using RehearsalRoomBookingSystem.Web.Models.Parameter;
 using RehearsalRoomBookingSystem.Web.Models.APIResult;
 using Microsoft.AspNetCore.Authorization;
+using Serilog;
 
 namespace RehearsalRoomBookingSystem.Web.Controllers
 {
@@ -42,7 +43,16 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
         {
             try
             {
+                Log.Information("開始處理扣除會員練團卡時數請求。MemberId: {MemberId}, Hours: {Hours}", 
+                    parameter.MemberId, parameter.UseHours);
+
                 var serviceResult = _memberService.UseCardTime(parameter.MemberId, parameter.UseHours);
+
+                if (!serviceResult.Success)
+                {
+                    Log.Warning("扣除會員練團卡時數失敗。MemberId: {MemberId}, Hours: {Hours}, Message: {Message}",
+                        parameter.MemberId, parameter.UseHours, serviceResult.Message);
+                }
 
                 var result = new UseCardTimeResult
                 {
@@ -55,6 +65,8 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "扣除會員練團卡時數處理發生未預期的錯誤。MemberId: {MemberId}, Hours: {Hours}", 
+                    parameter.MemberId, parameter.UseHours);
                 return BadRequest();
             }
         }
@@ -65,7 +77,15 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
         {
             try
             {
+                Log.Information("開始處理購買會員練團卡時數請求。MemberId: {MemberId}", parameter.MemberId);
+
                 var serviceResult = _memberService.BuyCardTime(parameter.MemberId);
+
+                if (!serviceResult.Success)
+                {
+                    Log.Warning("購買會員練團卡時數失敗。MemberId: {MemberId}, Message: {Message}",
+                        parameter.MemberId, serviceResult.Message);
+                }
 
                 var result = new BuyCardTimeResult
                 {
@@ -78,11 +98,8 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new BuyCardTimeResult
-                {
-                    Success = false,
-                    Message = "處理過程發生錯誤"
-                });
+                Log.Error(ex, "購買會員練團卡時數處理發生未預期的錯誤。MemberId: {MemberId}", parameter.MemberId);
+                return BadRequest();
             }
         }
 

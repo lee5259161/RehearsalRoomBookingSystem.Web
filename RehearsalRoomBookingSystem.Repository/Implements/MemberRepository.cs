@@ -6,6 +6,7 @@ using RehearsalRoomBookingSystem.Repository.Interface;
 using RehearsalRoomBookingSystem.Repository.Entities;
 using RehearsalRoomBookingSystem.Repository.Entities.ResultEntity;
 using RehearsalRoomBookingSystem.Common.Interface;
+using Serilog;
 
 namespace RehearsalRoomBookingSystem.Repository.Implements
 {
@@ -160,6 +161,36 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                             };
                         }
 
+                        // 新增交易紀錄
+                        string insertTransactionQuery = @"
+                            INSERT INTO [MemberTransactions] 
+                            ([MemberID], [TypeID], [TransactionHours], [CreateUser], [CreateDate])
+                            VALUES (@MemberId, @TypeId, @TransactionHours, @CreateUser, @CreateDate)";
+
+                        var transactionResult = connection.Execute(
+                            insertTransactionQuery,
+                            new
+                            {
+                                MemberId = memberId,
+                                TypeId = 2,
+                                TransactionHours = hours,
+                                CreateDate = DateTime.Now,
+                                CreateUser = _userContextHelper.GetCurrentUserAccount()
+                            },
+                            transaction
+                        );
+
+                        if (transactionResult != 1)
+                        {
+                            transaction.Rollback();
+                            return new CardTimeResultEntity
+                            {
+                                Success = false,
+                                Message = "新增交易紀錄失敗",
+                                RemainingHours = (int)currentHours
+                            };
+                        }
+
                         // 提交交易
                         transaction.Commit();
 
@@ -174,6 +205,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                     {
                         // 發生錯誤時回滾交易
                         transaction.Rollback();
+                        Log.Error(ex, "扣除會員練團卡時數時發生錯誤。MemberId: {MemberId}, Hours: {Hours}", memberId, hours);
                         return new CardTimeResultEntity
                         {
                             Success = false,
@@ -252,7 +284,37 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                             };
                         }
 
-                        // 4. 提交交易
+                        // 4. 新增交易紀錄
+                        string insertTransactionQuery = @"
+                            INSERT INTO [MemberTransactions] 
+                            ([MemberID], [TypeID], [TransactionHours], [CreateUser], [CreateDate])
+                            VALUES (@MemberId, @TypeId, @TransactionHours, @CreateUser, @CreateDate)";
+
+                        var transactionResult = connection.Execute(
+                            insertTransactionQuery,
+                            new
+                            {
+                                MemberId = memberId,
+                                TypeId = 1,
+                                TransactionHours = 10,
+                                CreateDate = DateTime.Now,
+                                CreateUser = _userContextHelper.GetCurrentUserAccount()
+                            },
+                            transaction
+                        );
+
+                        if (transactionResult != 1)
+                        {
+                            transaction.Rollback();
+                            return new BuyCardTimeResultEntity
+                            {
+                                Success = false,
+                                Message = "新增交易紀錄失敗",
+                                RemainingHours = (int)currentHours
+                            };
+                        }
+
+                        // 提交交易
                         transaction.Commit();
 
                         return new BuyCardTimeResultEntity
@@ -266,6 +328,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                     {
                         // 發生異常時回滾交易
                         transaction.Rollback();
+                        Log.Error(ex, "購買會員練團卡時數時發生錯誤。MemberId: {MemberId}", memberId);
                         throw;
                     }
                 }

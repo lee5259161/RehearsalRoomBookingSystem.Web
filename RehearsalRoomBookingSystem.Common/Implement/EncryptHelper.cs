@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RehearsalRoomBookingSystem.Common.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -10,7 +11,7 @@ namespace RehearsalRoomBookingSystem.Common.Implement
     /// <summary>
     /// class ReturnResult
     /// </summary>
-    public class EncryptHelper //: IEncryptHelper
+    public class EncryptHelper : IEncryptHelper
     {
         /// <summary>Encrypt value use SHA256</summary>
         /// <param name="value">The value.</param>
@@ -25,7 +26,7 @@ namespace RehearsalRoomBookingSystem.Common.Implement
             StringBuilder encryptValue = new StringBuilder();
             for (int i = 0; i < hash.Length; i++)
             {
-                encryptValue.Append(hash[i].ToString("Key Your Word"));  //轉換成十六進位制，每次都是兩位數
+                encryptValue.Append(hash[i].ToString("x2"));  //轉換成十六進位制，每次都是兩位數
             }
             string result = encryptValue.ToString(); // 雜湊運算後密碼
 
