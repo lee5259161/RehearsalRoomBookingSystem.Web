@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RehearsalRoomBookingSystem.Common.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -10,7 +11,7 @@ namespace RehearsalRoomBookingSystem.Common.Implement
     /// <summary>
     /// class ReturnResult
     /// </summary>
-    public class EncryptHelper //: IEncryptHelper
+    public class EncryptHelper : IEncryptHelper
     {
         /// <summary>Encrypt value use SHA256</summary>
         /// <param name="value">The value.</param>

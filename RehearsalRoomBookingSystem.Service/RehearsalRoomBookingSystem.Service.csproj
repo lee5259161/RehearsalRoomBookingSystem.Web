@@ -11,6 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\RehearsalRoomBookingSystem.Common\RehearsalRoomBookingSystem.Common.csproj" />
     <ProjectReference Include="..\RehearsalRoomBookingSystem.Repository\RehearsalRoomBookingSystem.Repository.csproj" />
   </ItemGroup>
