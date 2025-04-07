@@ -8,9 +8,9 @@ namespace RehearsalRoomBookingSystem.Web.Models.Parameter
     public class UseCardTimeParameter
     {
         /// <summary>
-        /// 會員ID
+        /// 會員Id
         /// </summary>
-        [Required(ErrorMessage = "會員ID為必填")]
+        [Required(ErrorMessage = "會員Id為必填")]
         public int MemberId { get; set; }
 
         /// <summary>

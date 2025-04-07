@@ -8,15 +8,14 @@ namespace RehearsalRoomBookingSystem.Service.Implements
 {
     public class MemberService : IMemberService
     {
-        //注入MemberRepository
         private readonly IMemberRepository _memberRepository;
         private readonly IServiceMapProfile _serviceMapProfile;
 
         public MemberService(IMemberRepository memberRepository,
-                             IServiceMapProfile serviceMapProfile)
+                           IServiceMapProfile serviceMapProfile)
         {
-            this._memberRepository = memberRepository;
-            this._serviceMapProfile = serviceMapProfile;
+            _memberRepository = memberRepository;
+            _serviceMapProfile = serviceMapProfile;
         }
 
         /// <summary>
@@ -56,7 +55,7 @@ namespace RehearsalRoomBookingSystem.Service.Implements
         /// <summary>
         /// 扣除會員練團卡時數
         /// </summary>
-        /// <param name="memberId">會員ID</param>
+        /// <param name="memberId">會員Id</param>
         /// <param name="hours">要扣除的小時數</param>
         /// <returns>處理結果</returns>
         public UseCardTimeResultDTO UseCardTime(int memberId, int hours)
@@ -107,7 +106,7 @@ namespace RehearsalRoomBookingSystem.Service.Implements
         /// <summary>
         /// 購買會員練團卡時數
         /// </summary>
-        /// <param name="memberId">會員ID</param>
+        /// <param name="memberId">會員Id</param>
         /// <returns>處理結果</returns>
         public BuyCardTimeResultDTO BuyCardTime(int memberId)
         {
@@ -116,11 +115,11 @@ namespace RehearsalRoomBookingSystem.Service.Implements
                 // 1. 驗證輸入參數
                 if (memberId <= 0)
                 {
-                    Log.Warning("無效的會員ID。MemberId: {MemberId}", memberId);
+                    Log.Warning("無效的會員Id。MemberId: {MemberId}", memberId);
                     return new BuyCardTimeResultDTO
                     {
                         Success = false,
-                        Message = "無效的會員ID",
+                        Message = "無效的會員Id",
                         RemainingHours = 0
                     };
                 }

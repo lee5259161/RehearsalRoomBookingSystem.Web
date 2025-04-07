@@ -26,8 +26,8 @@ namespace RehearsalRoomBookingSystem.Service.Implements
 
             return new AdministratorDTO
             {
-                AdminID = adminEntity.AdminID,
-                TypeID = adminEntity.TypeID,
+                AdminId = adminEntity.AdminId,
+                TypeId = adminEntity.TypeId,
                 Name = adminEntity.Name,
                 Account = adminEntity.Account,
                 UpdateUser = adminEntity.UpdateUser,
@@ -43,8 +43,8 @@ namespace RehearsalRoomBookingSystem.Service.Implements
 
             return new AdministratorDTO
             {
-                AdminID = adminEntity.AdminID,
-                TypeID = adminEntity.TypeID,
+                AdminId = adminEntity.AdminId,
+                TypeId = adminEntity.TypeId,
                 Name = adminEntity.Name,
                 Account = adminEntity.Account,
                 UpdateUser = adminEntity.UpdateUser,

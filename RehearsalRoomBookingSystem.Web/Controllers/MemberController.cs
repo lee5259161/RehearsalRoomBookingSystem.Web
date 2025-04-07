@@ -16,12 +16,15 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
     {
         private readonly IMemberService _memberService;
         private readonly IControllerMapProfile _controllerMapProfile;
-        
+        private readonly IMemberTransactionsService _memberTransactionsService;
+
         public MemberController(IMemberService memberService, 
-                              IControllerMapProfile controllerMapProfile)
+                              IControllerMapProfile controllerMapProfile,
+                              IMemberTransactionsService memberTransactionsService)
         {
             _memberService = memberService;
             _controllerMapProfile = controllerMapProfile;
+            _memberTransactionsService = memberTransactionsService;
         }
 
         // GET: MemberController
@@ -103,72 +106,49 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
             }
         }
 
-        // GET: MemberController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
-        // GET: MemberController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: MemberController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        [HttpGet]
+        public ActionResult GetMemberTransactions(int memberId)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                var transactions = _memberTransactionsService.GetMemberTransactions(memberId);
+                return Json(transactions);
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                Log.Error(ex, "取得會員交易記錄時發生錯誤。MemberId: {MemberId}", memberId);
+                return BadRequest(new { message = "取得交易記錄失敗" });
             }
         }
 
-        // GET: MemberController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: MemberController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult RecoverTransaction([FromBody] RecoverTransactionParameter parameter)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
+                Log.Information("開始回復交易記錄。TransactionId: {TransactionId}, MemberId: {MemberId}",
+                    parameter.TransactionId, parameter.MemberId);
 
-        // GET: MemberController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
+                var result = _memberTransactionsService.RecoverTransaction(parameter.TransactionId, parameter.MemberId);
 
-        // POST: MemberController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
+                if (!result.Success)
+                {
+                    Log.Warning("回復交易記錄失敗。TransactionId: {TransactionId}, Message: {Message}",
+                        parameter.TransactionId, result.Message);
+                }
+
+                return Json(new
+                {
+                    success = result.Success,
+                    message = result.Message
+                });
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                Log.Error(ex, "回復交易記錄時發生錯誤。TransactionId: {TransactionId}, MemberId: {MemberId}",
+                    parameter.TransactionId, parameter.MemberId);
+                return BadRequest(new { message = "回復交易記錄失敗" });
             }
         }
     }

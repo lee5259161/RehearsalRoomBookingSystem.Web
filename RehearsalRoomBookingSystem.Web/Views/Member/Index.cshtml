@@ -56,10 +56,10 @@
                     @Html.DisplayFor(modelItem => item.UpdateDate)
                 </td>
                 <td>
-                    <button class="btn btn-success use-btn" asp-action="UseRehearsalCardHours" id="use_@item.MemberID" data-member-id="@item.MemberID" data-member-name="@item.Name">使用</button>
-                    <button class="btn btn-danger buy-btn" asp-action="BuyRehearsalCardHours" id="buy_@item.MemberID" data-member-id="@item.MemberID" data-member-name="@item.Name">購買</button>
-                    <button class="btn btn-info details-btn" asp-action="Edit" id="details_@item.MemberID" data-member-id="@item.MemberID">明細</button>
-                    <button class="btn btn-primary edit-btn" asp-action="Edit" id="edit_@item.MemberID" data-member-id="@item.MemberID">修改資料</button>
+                    <button class="btn btn-success use-btn" asp-action="UseRehearsalCardHours" id="use_@item.MemberId" data-member-id="@item.MemberId" data-member-name="@item.Name">使用</button>
+                    <button class="btn btn-danger buy-btn" asp-action="BuyRehearsalCardHours" id="buy_@item.MemberId" data-member-id="@item.MemberId" data-member-name="@item.Name">購買</button>
+                    <button class="btn btn-info details-btn" asp-action="Edit" id="details_@item.MemberId" data-member-id="@item.MemberId">明細</button>
+                    <button class="btn btn-primary edit-btn" asp-action="Edit" id="edit_@item.MemberId" data-member-id="@item.MemberId">修改資料</button>
                 </td>
             </tr>
         }
@@ -93,6 +93,42 @@
     </div>
 </div>
 
+<!-- 交易明細 Modal -->
+<div class="modal fade" id="transactionDetailsModal" tabindex="-1" aria-labelledby="transactionDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transactionDetailsModalLabel">交易明細</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">會員姓名</label>
+                    <p id="transactionMemberName" class="form-control-static"></p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>交易時間</th>
+                                <th>類型</th>
+                                <th>交易時數</th>
+                                <th>建立者</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         $(document).ready(function () {
@@ -100,11 +136,11 @@
             $('.use-btn').click(function (e) {
                 e.preventDefault();
 
-                // 取得會員ID和姓名
+                // 取得會員Id和姓名
                 var memberId = $(this).data('member-id');
                 var memberName = $(this).data('member-name');
 
-                // 設定會員ID到Modal的隱藏欄位
+                // 設定會員Id到Modal的隱藏欄位
                 $('#memberId').val(memberId);
                 // 設定會員姓名
                 $('#memberName').text(memberName);
@@ -186,6 +222,94 @@
                     },
                     error: function (xhr) {
                         alert(xhr.responseJSON ? xhr.responseJSON.message : '處理過程發生錯誤');
+                    }
+                });
+            });
+
+            // 當點擊明細按鈕時
+            $('.details-btn').click(function (e) {
+                e.preventDefault();
+                var memberId = $(this).data('member-id');
+                var memberName = $(this).closest('tr').find('td:first').text().trim();
+                
+                // 設定會員姓名
+                $('#transactionMemberName').text(memberName);
+                
+                // 發送 AJAX 請求獲取交易明細
+                $.ajax({
+                    url: '@Url.Action("GetMemberTransactions", "Member")',
+                    type: 'GET',
+                    data: { memberId: memberId },
+                    success: function (transactions) {
+                        var tbody = $('#transactionTableBody');
+                        tbody.empty();
+                        
+                        transactions.forEach(function(trans) {
+                            var typeText = trans.TypeId === 1 ? '購買' : 
+                                         trans.TypeId === 2 ? '使用' : 
+                                         trans.TypeId === 3 ? '回復購買' :
+                                         trans.TypeId === 4 ? '回復使用' : '其他';
+                            var row = $('<tr>');
+                            row.append($('<td>').text(new Date(trans.CreateDate).toLocaleString()));
+                            row.append($('<td>').text(typeText));
+                            row.append($('<td>').text(trans.TransactionHours));
+                            row.append($('<td>').text(trans.CreateUser));
+                            
+                            var actionCell = $('<td>');
+                            if (trans.TypeId === 1 || trans.TypeId === 2) {
+                                actionCell.append(
+                                    $('<button>')
+                                        .addClass('btn btn-warning btn-sm recover-btn')
+                                        .text('回復')
+                                        .data('transaction-id', trans.TransactionId)
+                                        .data('member-id', memberId)
+                                );
+                            }
+                            row.append(actionCell);
+                            
+                            tbody.append(row);
+                        });
+                    },
+                    error: function (xhr) {
+                        alert('獲取交易明細失敗');
+                    }
+                });
+                
+                // 顯示Modal
+                var transactionDetailsModal = new bootstrap.Modal(document.getElementById('transactionDetailsModal'));
+                transactionDetailsModal.show();
+            });
+
+            // 當點擊回復按鈕時
+            $(document).on('click', '.recover-btn', function() {
+                var transactionId = $(this).data('transaction-id');
+                var memberId = $(this).data('member-id');
+                
+                if (!confirm('確定要回復這筆交易嗎？')) {
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("RecoverTransaction", "Member")',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        transactionId: transactionId,
+                        memberId: memberId
+                    }),
+                    contentType: 'application/json',
+                    headers: {
+                        "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (result) {
+                        if (result.success) {
+                            alert('回復成功');
+                            location.reload();
+                        } else {
+                            alert(result.message || '回復失敗');
+                        }
+                    },
+                    error: function (xhr) {
+                        alert('處理過程發生錯誤');
                     }
                 });
             });

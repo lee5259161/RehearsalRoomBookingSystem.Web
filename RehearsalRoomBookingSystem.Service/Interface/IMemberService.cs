@@ -24,7 +24,7 @@ namespace RehearsalRoomBookingSystem.Service.Interface
         /// <summary>
         /// 扣除會員練團卡時數
         /// </summary>
-        /// <param name="memberId">會員ID</param>
+        /// <param name="memberId">會員Id</param>
         /// <param name="hours">要扣除的小時數</param>
         /// <returns>處理結果</returns>
         UseCardTimeResultDTO UseCardTime(int memberId, int minutes);
@@ -32,7 +32,7 @@ namespace RehearsalRoomBookingSystem.Service.Interface
         /// <summary>
         /// 購買會員練團卡時數
         /// </summary>
-        /// <param name="memberId">會員ID</param>
+        /// <param name="memberId">會員Id</param>
         /// <returns>處理結果</returns>
         BuyCardTimeResultDTO BuyCardTime(int memberId);
     }

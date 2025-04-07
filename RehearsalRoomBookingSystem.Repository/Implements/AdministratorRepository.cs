@@ -31,7 +31,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
 
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = @"SELECT [AdminID], [TypeID], [Name], [Account], 
+                string query = @"SELECT [AdminId], [TypeId], [Name], [Account], 
                                        [Password], [UpdateUser], [UpdateDate]
                                 FROM [Administrators] 
                                 WHERE [Account] = @Account 
@@ -50,7 +50,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         {
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = @"SELECT [AdminID], [TypeID], [Name], [Account], 
+                string query = @"SELECT [AdminId], [TypeId], [Name], [Account], 
                                        [Password], [UpdateUser], [UpdateDate]
                                 FROM [Administrators] 
                                 WHERE [Account] = @Account";

@@ -31,7 +31,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         {
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = "SELECT COUNT([MemberID]) FROM [Members]";
+                string query = "SELECT COUNT([MemberId]) FROM [Members]";
                 var result = connection.QueryFirstOrDefault<int>(query);
                 return result;
             }
@@ -45,28 +45,30 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         {
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = @"SELECT [MemberID], [Name], [Phone], 
-                                     [Card_Available_Hours], [Memo], 
-                                     [UpdateUser], [UpdateDate] FROM [Members]";
+                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone], 
+                                     m.[Card_Available_Hours], m.[Memo], 
+                                     a.[Name] as [UpdateUser], m.[UpdateDate] 
+                              FROM [Members] m
+                              LEFT JOIN [Administrators] a ON m.[UpdateUser] = a.[Account]";
                 var result = connection.Query<MemberEntity>(query);
                 return result;
             }
         }
 
         /// <summary>
-        /// 依照會員ID取得會員資料
+        /// 依照會員Id取得會員資料
         /// </summary>
-        /// <param name="memberId">會員ID</param>
+        /// <param name="memberId">會員Id</param>
         /// <returns>會員資料</returns>
         public MemberEntity GetById(int memberId)
         {
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = @"SELECT [MemberID], [Name], [Phone], 
+                string query = @"SELECT [MemberId], [Name], [Phone], 
                                [Card_Available_Hours], [Memo], 
                                [UpdateUser], [UpdateDate] 
                         FROM [Members] 
-                        WHERE [MemberID] = @MemberId";
+                        WHERE [MemberId] = @MemberId";
 
                 var result = connection.QueryFirstOrDefault<MemberEntity>(
                     query,
@@ -80,7 +82,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         /// <summary>
         /// 扣除會員練團卡時數
         /// </summary>
-        /// <param name="memberId">會員ID</param>
+        /// <param name="memberId">會員Id</param>
         /// <param name="hours">要扣除的小時數</param>
         /// <returns>處理結果</returns>
         public CardTimeResultEntity UseCardTime(int memberId, int hours)
@@ -98,7 +100,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                         // 1. 檢查會員是否存在及其剩餘時數
                         string checkQuery = @"SELECT [Card_Available_Hours] 
                                         FROM [Members] 
-                                        WHERE [MemberID] = @MemberId";
+                                        WHERE [MemberId] = @MemberId";
 
                         var currentHours = connection.QueryFirstOrDefault<int?>(
                             checkQuery,
@@ -133,7 +135,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                                          SET [Card_Available_Hours] = @NewHours,
                                              [UpdateDate] = @UpdateDate,
                                              [UpdateUser] = @UpdateUser
-                                         WHERE [MemberID] = @MemberId";
+                                         WHERE [MemberId] = @MemberId";
 
                         int newHours = (int)currentHours - hours;
 
@@ -164,7 +166,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                         // 新增交易紀錄
                         string insertTransactionQuery = @"
                             INSERT INTO [MemberTransactions] 
-                            ([MemberID], [TypeID], [TransactionHours], [CreateUser], [CreateDate])
+                            ([MemberId], [TypeId], [TransactionHours], [CreateUser], [CreateDate])
                             VALUES (@MemberId, @TypeId, @TransactionHours, @CreateUser, @CreateDate)";
 
                         var transactionResult = connection.Execute(
@@ -220,7 +222,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         /// <summary>
         /// 增加會員練團卡時數
         /// </summary>
-        /// <param name="memberId">會員ID</param>
+        /// <param name="memberId">會員Id</param>
         /// <returns>處理結果</returns>
         public BuyCardTimeResultEntity BuyCardTime(int memberId)
         {
@@ -287,7 +289,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                         // 4. 新增交易紀錄
                         string insertTransactionQuery = @"
                             INSERT INTO [MemberTransactions] 
-                            ([MemberID], [TypeID], [TransactionHours], [CreateUser], [CreateDate])
+                            ([MemberId], [TypeId], [TransactionHours], [CreateUser], [CreateDate])
                             VALUES (@MemberId, @TypeId, @TransactionHours, @CreateUser, @CreateDate)";
 
                         var transactionResult = connection.Execute(

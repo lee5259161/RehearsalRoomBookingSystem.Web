@@ -18,7 +18,7 @@ namespace RehearsalRoomBookingSystem.Web.Infrastructure.MappingProfile
         {
             return new Member
             {
-                MemberID = dto.MemberID,
+                MemberId = dto.MemberId,
                 Name = dto.Name,
                 Phone = dto.Phone,
                 Card_Available_Hours = dto.Card_Available_Hours,

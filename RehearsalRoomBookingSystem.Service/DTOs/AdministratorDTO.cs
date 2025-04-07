@@ -10,8 +10,8 @@ namespace RehearsalRoomBookingSystem.Service.DTOs
             UpdateDate = DateTime.Now;
         }
 
-        public int AdminID { get; set; }
-        public int TypeID { get; set; }
+        public int AdminId { get; set; }
+        public int TypeId { get; set; }
         public string Name { get; set; }
         public string Account { get; set; }
         public string UpdateUser { get; set; }

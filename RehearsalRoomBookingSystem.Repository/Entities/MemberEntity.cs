@@ -24,9 +24,9 @@ namespace RehearsalRoomBookingSystem.Repository.Entities
         }
 
         /// <summary>
-        /// Gets or sets the member ID.
+        /// Gets or sets the member Id.
         /// </summary>
-        public int MemberID { get; set; }
+        public int MemberId { get; set; }
 
         /// <summary>
         /// Gets or sets the member's name.
