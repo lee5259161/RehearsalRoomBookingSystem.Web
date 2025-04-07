@@ -39,7 +39,7 @@ namespace RehearsalRoomBookingSystem.Common.Helpers
                     // 原有的資料表建立
                     sql += @"
                     CREATE TABLE [Members] (
-                       [MemberID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                       [MemberId] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                        [Name] TEXT,
                        [Phone] TEXT,
                        [Card_Available_Hours] int,
@@ -51,36 +51,41 @@ namespace RehearsalRoomBookingSystem.Common.Helpers
                     //新增一個交易類型的參考表
                     sql += @"
                     CREATE TABLE [TransactionTypes] (
-                        [TypeID] int NOT NULL PRIMARY KEY,
+                        [TypeId] int NOT NULL PRIMARY KEY,
                         [TypeName] TEXT NOT NULL,
                         [Description] TEXT NOT NULL
                     );
 
                     -- 插入交易類型定義
-                    INSERT INTO [TransactionTypes] ([TypeID], [TypeName], [Description])
+                    INSERT INTO [TransactionTypes] ([TypeId], [TypeName], [Description])
                     VALUES 
                         (1, '購買時數', '會員購買預付時數'),
                         (2, '使用時數', '會員使用預付時數'),
-                        (3, '還原購買', '還原會員購買時數紀錄'),
-                        (4, '還原使用', '還原會員使用時數紀錄');";
+                        (3, '回復購買', '回復會員購買時數紀錄'),
+                        (4, '回復使用', '回復會員使用時數紀錄');";
 
                     sql += @"
                     -- 主要的交易記錄表
                     CREATE TABLE [MemberTransactions] (
-                    [TransactionID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    [MemberID] int NOT NULL,
-                    [TypeID] int NOT NULL,
+                    [TransactionId] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    [MemberId] int NOT NULL,
+                    [TypeId] int NOT NULL,
                     [TransactionHours] int NOT NULL,
                     [CreateUser] TEXT NOT NULL,
                     [CreateDate] datetime NOT NULL DEFAULT (datetime('now')),
-                    FOREIGN KEY ([MemberID]) REFERENCES [Members]([MemberID]),  -- 外鍵約束
-                    FOREIGN KEY ([TypeID]) REFERENCES [TransactionTypes]([TypeID]), -- 外鍵約束
+                    [RecoveryTransactionId] int NULL, -- 用於追蹤被回復的原始交易
+                    [IsRecovered] boolean NOT NULL DEFAULT 0, -- 標記該筆交易是否已被回復
+                    [RecoverUser] TEXT NULL, -- 新增：執行回復的使用者
+                    [RecoverDate] datetime NULL, -- 新增：執行回復的時間
+                    FOREIGN KEY ([MemberId]) REFERENCES [Members]([MemberId]),  -- 外鍵約束
+                    FOREIGN KEY ([TypeId]) REFERENCES [TransactionTypes]([TypeId]), -- 外鍵約束
+                    FOREIGN KEY ([RecoveryTransactionId]) REFERENCES [MemberTransactions]([TransactionId]), -- 外鍵參考原始交易
                     CHECK ([TransactionHours] != 0) -- 確保交易時數不為零
                     );";
 
                     sql += @"
-                        CREATE INDEX [IX_MemberTransactions_MemberID] ON [MemberTransactions]([MemberID]);
-                        CREATE INDEX [IX_MemberTransactions_Type] ON [MemberTransactions]([TypeID]);
+                        CREATE INDEX [IX_MemberTransactions_MemberId] ON [MemberTransactions]([MemberId]);
+                        CREATE INDEX [IX_MemberTransactions_Type] ON [MemberTransactions]([TypeId]);
                         CREATE INDEX [IX_MemberTransactions_CreateDate] ON [MemberTransactions]([CreateDate]);";
 
                     // 插入測試資料
@@ -136,7 +141,7 @@ VALUES
                             conn.Execute(@"
                                 -- 創建臨時表
                                 CREATE TABLE [Members_Temp] (
-                                   [MemberID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                                   [MemberId] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                                    [Name] TEXT,
                                    [Phone] TEXT,
                                    [Card_Available_Hours] int,
@@ -166,8 +171,8 @@ VALUES
                                 // 建立管理人員資料表
                                 conn.Execute(@"
                                     CREATE TABLE [Administrators] (
-                                    [AdminID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                                    [TypeID] int NOT NULL,
+                                    [AdminId] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                                    [TypeId] int NOT NULL,
                                     [Name] TEXT,
                                     [Account] TEXT NOT NULL UNIQUE,
                                     [Password] TEXT NOT NULL,
@@ -180,7 +185,7 @@ VALUES
                                 var defaultPassword = _encryptHelper.SHAEncrypt("admin", ENCRYPT_SALT);
                                 conn.Execute($@"
                                     INSERT INTO [Administrators] 
-                                        ([TypeID], [Name], [Account], [Password], [UpdateUser], [UpdateDate])
+                                        ([TypeId], [Name], [Account], [Password], [UpdateUser], [UpdateDate])
                                     VALUES 
                                         (1, '系統管理員', 'admin20', '{defaultPassword}', 'System', datetime('now'))
                                 ");

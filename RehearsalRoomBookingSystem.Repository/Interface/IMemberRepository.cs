@@ -23,16 +23,16 @@ namespace RehearsalRoomBookingSystem.Repository.Interface
         IEnumerable<MemberEntity> GetCollection();
 
         /// <summary>
-        /// 依照會員ID取得會員資料
+        /// 依照會員Id取得會員資料
         /// </summary>
-        /// <param name="memberId">會員ID</param>
+        /// <param name="memberId">會員Id</param>
         /// <returns>會員資料</returns>
         MemberEntity GetById(int memberId);
 
         /// <summary>
         /// 扣除會員練團卡時數
         /// </summary>
-        /// <param name="memberId">會員ID</param>
+        /// <param name="memberId">會員Id</param>
         /// <param name="minutes">要扣除的小時數</param>
         /// <returns>處理結果</returns>
         CardTimeResultEntity UseCardTime(int memberId, int hours);
@@ -40,7 +40,7 @@ namespace RehearsalRoomBookingSystem.Repository.Interface
         /// <summary>
         /// 增加會員練團卡時數
         /// </summary>
-        /// <param name="memberId">會員ID</param>
+        /// <param name="memberId">會員Id</param>
         BuyCardTimeResultEntity BuyCardTime(int memberId);
     }
 }

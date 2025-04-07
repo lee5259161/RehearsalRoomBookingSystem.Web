@@ -53,7 +53,7 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
             {
                 new Claim(ClaimTypes.Name, admin.Name),
                 new Claim(ClaimTypes.NameIdentifier, admin.Account),
-                new Claim(ClaimTypes.Role, admin.TypeID.ToString()),
+                new Claim(ClaimTypes.Role, admin.TypeId.ToString()),
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

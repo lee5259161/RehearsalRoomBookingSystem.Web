@@ -13,8 +13,8 @@ namespace RehearsalRoomBookingSystem.Repository.Entities
             UpdateDate = DateTime.Now;
         }
 
-        public int AdminID { get; set; }
-        public int TypeID { get; set; }
+        public int AdminId { get; set; }
+        public int TypeId { get; set; }
         public string Name { get; set; }
         public string Account { get; set; }
         public string Password { get; set; }

@@ -31,10 +31,12 @@ namespace RehearsalRoomBookingSystem.Web.Infrastructure.ServiceCollections
             // Repository
             services.AddScoped<IMemberRepository, MemberRepository>();
             services.AddScoped<IAdministratorRepository, AdministratorRepository>();
+            services.AddScoped<IMemberTransactionsRepository, MemberTransactionsRepository>();
 
             // Service
             services.AddScoped<IMemberService, MemberService>();
             services.AddScoped<IAdministratorService, AdministratorService>();
+            services.AddScoped<IMemberTransactionsService, MemberTransactionsService>();
 
             // MappingProfile
             services.AddScoped<IServiceMapProfile, ServiceMapProfile>();

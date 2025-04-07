@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+using System;
 
-namespace RehearsalRoomBookingSystem.Repository.Entities
+namespace RehearsalRoomBookingSystem.Service.DTOs
 {
-    public class MemberTransactionEntity
+    public class MemberTransactionDTO
     {
-        public MemberTransactionEntity()
+        public MemberTransactionDTO()
         {
             CreateUser = string.Empty;
             CreateDate = DateTime.Now;
