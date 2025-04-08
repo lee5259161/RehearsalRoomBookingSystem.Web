@@ -121,12 +121,23 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
         }
 
         [HttpGet]
-        public ActionResult GetMemberTransactions(int memberId)
+        public ActionResult GetMemberTransactions(int memberId, int? page)
         {
             try
             {
-                var transactions = _memberTransactionsService.GetMemberTransactions(memberId);
-                return Json(transactions);
+                const int pageSize = 10;
+                int pageNumber = page ?? 1;
+
+                var totalCount = _memberTransactionsService.GetMemberTransactionsCount(memberId);
+                var transactions = _memberTransactionsService.GetPagedMemberTransactions(memberId, pageNumber, pageSize);
+
+                return Json(new
+                {
+                    transactions = transactions,
+                    totalCount = totalCount,
+                    pageSize = pageSize,
+                    currentPage = pageNumber
+                });
             }
             catch (Exception ex)
             {
