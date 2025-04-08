@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RehearsalRoomBookingSystem.Service.Interface;
 using RehearsalRoomBookingSystem.Web.Infrastructure.MappingProfile;
@@ -6,8 +7,8 @@ using RehearsalRoomBookingSystem.Web.Models.ViewModels;
 using RehearsalRoomBookingSystem.Web.Models.DataModel;
 using RehearsalRoomBookingSystem.Web.Models.Parameter;
 using RehearsalRoomBookingSystem.Web.Models.APIResult;
-using Microsoft.AspNetCore.Authorization;
 using Serilog;
+using X.PagedList;
 
 namespace RehearsalRoomBookingSystem.Web.Controllers
 {
@@ -28,13 +29,26 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
         }
 
         // GET: MemberController
-        public ActionResult Index()
+        public ActionResult Index(int? page)
         {
-            var memberDTOs = _memberService.GetCollection();
+            int pageNumber = page ?? 1;
+            const int pageSize = 10;
+
+            var totalCount = _memberService.GetTotalCount();
+            var memberDTOs = _memberService.GetPagedCollection(pageNumber, pageSize);
             var members = _controllerMapProfile.MapToMembers(memberDTOs);
+
             var memberViewModel = new MemberViewModel
             {
-                Members = members.ToList(),
+                Members = new StaticPagedList<Models.DataModel.Member>(
+                    members,
+                    pageNumber,
+                    pageSize,
+                    totalCount
+                ),
+                TotalCount = totalCount,
+                CurrentPage = pageNumber,
+                PageSize = pageSize
             };
 
             return View(memberViewModel);

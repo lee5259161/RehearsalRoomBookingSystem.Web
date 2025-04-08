@@ -22,6 +22,14 @@ namespace RehearsalRoomBookingSystem.Service.Interface
         IEnumerable<MemberDTO> GetCollection();
 
         /// <summary>
+        /// 分頁查詢會員資料
+        /// </summary>
+        /// <param name="pageNumber">頁碼，從1開始</param>
+        /// <param name="pageSize">每頁筆數</param>
+        /// <returns>指定頁碼的會員資料</returns>
+        IEnumerable<MemberDTO> GetPagedCollection(int pageNumber, int pageSize);
+
+        /// <summary>
         /// 扣除會員練團卡時數
         /// </summary>
         /// <param name="memberId">會員Id</param>
