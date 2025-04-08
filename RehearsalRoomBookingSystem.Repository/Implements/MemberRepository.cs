@@ -55,6 +55,24 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
             }
         }
 
+        public IEnumerable<MemberEntity> GetPagedCollection(int pageNumber, int pageSize)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone], 
+                                     m.[Card_Available_Hours], m.[Memo], 
+                                     a.[Name] as [UpdateUser], m.[UpdateDate] 
+                              FROM [Members] m
+                              LEFT JOIN [Administrators] a ON m.[UpdateUser] = a.[Account]
+                              ORDER BY m.[MemberId]
+                              LIMIT @PageSize OFFSET @Offset";
+
+                var offset = (pageNumber - 1) * pageSize;
+                var result = connection.Query<MemberEntity>(query, new { PageSize = pageSize, Offset = offset });
+                return result;
+            }
+        }
+
         /// <summary>
         /// 依照會員Id取得會員資料
         /// </summary>

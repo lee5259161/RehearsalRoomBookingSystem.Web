@@ -11,8 +11,7 @@ namespace RehearsalRoomBookingSystem.Service.Implements
         private readonly IMemberRepository _memberRepository;
         private readonly IServiceMapProfile _serviceMapProfile;
 
-        public MemberService(IMemberRepository memberRepository,
-                           IServiceMapProfile serviceMapProfile)
+        public MemberService(IMemberRepository memberRepository, IServiceMapProfile serviceMapProfile)
         {
             _memberRepository = memberRepository;
             _serviceMapProfile = serviceMapProfile;
@@ -24,7 +23,6 @@ namespace RehearsalRoomBookingSystem.Service.Implements
         /// <returns>所有會員資料的集合</returns>
         public IEnumerable<MemberDTO> GetCollection()
         {
-
             //先取得會員總數，如果沒資料就直接回傳
             var memberAmount = this._memberRepository.GetTotalCount();
 
@@ -45,11 +43,19 @@ namespace RehearsalRoomBookingSystem.Service.Implements
         /// <returns>會員總數</returns>
         public int GetTotalCount()
         {
-            //先取得會員總數，如果沒資料就直接回傳
-            var memberAmount = this._memberRepository.GetTotalCount();
+            return _memberRepository.GetTotalCount();
+        }
 
-            return memberAmount;
-
+        /// <summary>
+        /// 分頁查詢會員資料
+        /// </summary>
+        /// <param name="pageNumber">頁碼，從1開始</param>
+        /// <param name="pageSize">每頁筆數</param>
+        /// <returns>指定頁碼的會員資料</returns>
+        public IEnumerable<MemberDTO> GetPagedCollection(int pageNumber, int pageSize)
+        {
+            var entities = _memberRepository.GetPagedCollection(pageNumber, pageSize);
+            return entities.Select(entity => _serviceMapProfile.MapToMemberDTO(entity));
         }
 
         /// <summary>
