@@ -48,6 +48,53 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
             }
         }
 
+        public int GetMemberTransactionsCount(int memberId)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                string query = @"
+                    SELECT COUNT(*) 
+                    FROM MemberTransactions 
+                    WHERE MemberId = @MemberId";
+
+                return connection.ExecuteScalar<int>(query, new { MemberId = memberId });
+            }
+        }
+
+        public IEnumerable<MemberTransactionEntity> GetPagedMemberTransactions(int memberId, int pageNumber, int pageSize)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                string query = @"
+                    SELECT 
+                        mt.TransactionId,
+                        mt.MemberId,
+                        mt.TypeId,
+                        mt.TransactionHours,
+                        a.Name as CreateUser,
+                        mt.CreateDate,
+                        mt.RecoveryTransactionId,
+                        mt.IsRecovered,
+                        mt.RecoverUser,
+                        mt.RecoverDate
+                    FROM MemberTransactions mt
+                    LEFT JOIN Administrators a ON mt.CreateUser = a.Account
+                    WHERE mt.MemberId = @MemberId
+                    ORDER BY mt.CreateDate DESC
+                    LIMIT @PageSize OFFSET @Offset";
+
+                var offset = (pageNumber - 1) * pageSize;
+                return connection.Query<MemberTransactionEntity>(
+                    query, 
+                    new { 
+                        MemberId = memberId,
+                        PageSize = pageSize,
+                        Offset = offset
+                    }
+                );
+            }
+        }
+
         public CardTimeResultEntity RecoverTransaction(int transactionId, int memberId)
         {
             using (var connection = new SqliteConnection(_connectionString))

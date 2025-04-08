@@ -64,7 +64,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                                      a.[Name] as [UpdateUser], m.[UpdateDate] 
                               FROM [Members] m
                               LEFT JOIN [Administrators] a ON m.[UpdateUser] = a.[Account]
-                              ORDER BY m.[MemberId]
+                              ORDER BY m.[MemberId] DESC
                               LIMIT @PageSize OFFSET @Offset";
 
                 var offset = (pageNumber - 1) * pageSize;

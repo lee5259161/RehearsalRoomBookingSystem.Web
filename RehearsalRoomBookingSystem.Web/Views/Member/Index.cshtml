@@ -136,6 +136,12 @@
                         <tbody id="transactionTableBody">
                         </tbody>
                     </table>
+                    <div id="transactionPagination" class="d-flex justify-content-center">
+                        <nav aria-label="交易明細分頁">
+                            <ul class="pagination">
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -247,60 +253,23 @@
                 e.preventDefault();
                 var memberId = $(this).data('member-id');
                 var memberName = $(this).closest('tr').find('td:first').text().trim();
-                
+
                 // 設定會員姓名
                 $('#transactionMemberName').text(memberName);
                 
-                // 發送 AJAX 請求獲取交易明細
-                $.ajax({
-                    url: '@Url.Action("GetMemberTransactions", "Member")',
-                    type: 'GET',
-                    data: { memberId: memberId },
-                    success: function (transactions) {
-                        var tbody = $('#transactionTableBody');
-                        tbody.empty();
-                        
-                        transactions.forEach(function(trans) {
-                            var typeText = trans.TypeId === 1 ? '購買' : 
-                                         trans.TypeId === 2 ? '使用' : 
-                                         trans.TypeId === 3 ? '回復購買' :
-                                         trans.TypeId === 4 ? '回復使用' : '其他';
-                            var row = $('<tr>');
-                            row.append($('<td>').text(new Date(trans.CreateDate).toLocaleString()));
-                            row.append($('<td>').text(typeText));
-                            row.append($('<td>').text(trans.TransactionHours));
-                            row.append($('<td>').text(trans.CreateUser));
-                            
-                            var actionCell = $('<td>');
-                            if (trans.TypeId === 1 || trans.TypeId === 2) {
-                                actionCell.append(
-                                    $('<button>')
-                                        .addClass('btn btn-warning btn-sm recover-btn')
-                                        .text('回復')
-                                        .data('transaction-id', trans.TransactionId)
-                                        .data('member-id', memberId)
-                                );
-                            }
-                            row.append(actionCell);
-                            
-                            tbody.append(row);
-                        });
-                    },
-                    error: function (xhr) {
-                        alert('獲取交易明細失敗');
-                    }
-                });
-                
+                // 載入第一頁的交易記錄
+                loadTransactions(memberId, 1);
+
                 // 顯示Modal
                 var transactionDetailsModal = new bootstrap.Modal(document.getElementById('transactionDetailsModal'));
                 transactionDetailsModal.show();
             });
 
             // 當點擊回復按鈕時
-            $(document).on('click', '.recover-btn', function() {
+            $(document).on('click', '.recover-btn', function () {
                 var transactionId = $(this).data('transaction-id');
                 var memberId = $(this).data('member-id');
-                
+
                 if (!confirm('確定要回復這筆交易嗎？')) {
                     return;
                 }
@@ -330,5 +299,172 @@
                 });
             });
         });
+
+        let currentMemberId = 0;
+        let currentPage = 1;
+        let totalPages = 1;
+
+        function loadTransactions(memberId, page) {
+            currentMemberId = memberId;
+            currentPage = page;
+
+            $.ajax({
+                url: '@Url.Action("GetMemberTransactions", "Member")',
+                type: 'GET',
+                data: { memberId: memberId, page: page },
+                success: function (result) {
+                    var tbody = $('#transactionTableBody');
+                    tbody.empty();
+
+                    // 確保 result 包含必要的資訊
+                    var transactions = result.transactions || [];
+                    var totalCount = result.totalCount || 0;
+                    var pageSize = result.pageSize || 10;
+                    var currentPage = result.currentPage || 1;
+
+                    transactions.forEach(function (trans) {
+                        var typeText = trans.TypeId === 1 ? '購買' :
+                            trans.TypeId === 2 ? '使用' :
+                                trans.TypeId === 3 ? '回復購買' :
+                                    trans.TypeId === 4 ? '回復使用' : '其他';
+                        var row = $('<tr>');
+                        row.append($('<td>').text(new Date(trans.CreateDate).toLocaleString()));
+                        row.append($('<td>').text(typeText));
+                        row.append($('<td>').text(trans.TransactionHours));
+                        row.append($('<td>').text(trans.CreateUser));
+
+                        var actionCell = $('<td>');
+                        if (!trans.isRecovered && (trans.TypeId === 1 || trans.TypeId === 2)) {
+                            var recoverButton = $('<button>')
+                                .addClass('btn btn-sm btn-warning')
+                                .text('回復')
+                                .on('click', function () {
+                                    recoverTransaction(trans.TransactionId, memberId);
+                                });
+                            actionCell.append(recoverButton);
+                        }
+                        row.append(actionCell);
+                        tbody.append(row);
+                    });
+
+                    // 更新分頁控制項
+                    updatePagination(totalCount, pageSize, currentPage);
+                },
+                error: function () {
+                    alert('取得交易記錄失敗');
+                }
+            });
+        }
+
+        function updatePagination(totalCount, pageSize, currentPage) {
+            totalPages = Math.ceil(totalCount / pageSize);
+            var $pagination = $('#transactionPagination .pagination');
+            $pagination.empty();
+
+            // 如果只有一頁，不顯示分頁控制項
+            if (totalPages <= 1) {
+                return;
+            }
+
+            // 上一頁
+            $pagination.append(
+                $('<li>').addClass('page-item' + (currentPage === 1 ? ' disabled' : '')).append(
+                    $('<a>')
+                        .addClass('page-link')
+                        .attr('href', '#')
+                        .text('上一頁')
+                        .on('click', function (e) {
+                            e.preventDefault();
+                            if (currentPage > 1) {
+                                loadTransactions(currentMemberId, currentPage - 1);
+                            }
+                        })
+                )
+            );
+
+            // 數字頁碼（最多顯示5個頁碼）
+            var startPage = Math.max(1, currentPage - 2);
+            var endPage = Math.min(totalPages, startPage + 4);
+            startPage = Math.max(1, endPage - 4);
+
+            for (var i = startPage; i <= endPage; i++) {
+                $pagination.append(
+                    $('<li>').addClass('page-item' + (i === currentPage ? ' active' : '')).append(
+                        $('<a>')
+                            .addClass('page-link')
+                            .attr('href', '#')
+                            .text(i)
+                            .on('click', (function (pageNum) {
+                                return function (e) {
+                                    e.preventDefault();
+                                    if (pageNum !== currentPage) {
+                                        loadTransactions(currentMemberId, pageNum);
+                                    }
+                                };
+                            })(i))
+                    )
+                );
+            }
+
+            // 下一頁
+            $pagination.append(
+                $('<li>').addClass('page-item' + (currentPage === totalPages ? ' disabled' : '')).append(
+                    $('<a>')
+                        .addClass('page-link')
+                        .attr('href', '#')
+                        .text('下一頁')
+                        .on('click', function (e) {
+                            e.preventDefault();
+                            if (currentPage < totalPages) {
+                                loadTransactions(currentMemberId, currentPage + 1);
+                            }
+                        })
+                )
+            );
+        }
+
+        $(document).ready(function () {
+            $('.view-transactions').on('click', function () {
+                var memberId = $(this).data('member-id');
+                var memberName = $(this).closest('tr').find('td:first').text().trim();
+
+                $('#transactionMemberName').text(memberName);
+                loadTransactions(memberId, 1);
+
+                $('#transactionDetailsModal').modal('show');
+            });
+        });
+
+        function recoverTransaction(transactionId, memberId) {
+            if (!confirm('確定要回復此筆交易嗎？')) {
+                return;
+            }
+
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            $.ajax({
+                url: '@Url.Action("RecoverTransaction", "Member")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    transactionId: transactionId,
+                    memberId: memberId
+                }),
+                headers: {
+                    'RequestVerificationToken': token
+                },
+                success: function (result) {
+                    if (result.success) {
+                        alert('回復成功');
+                        loadTransactions(memberId, currentPage);
+                    } else {
+                        alert(result.message || '回復失敗');
+                    }
+                },
+                error: function () {
+                    alert('回復交易時發生錯誤');
+                }
+            });
+        }
     </script>
 }
