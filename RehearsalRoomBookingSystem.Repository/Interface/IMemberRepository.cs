@@ -65,5 +65,12 @@ namespace RehearsalRoomBookingSystem.Repository.Interface
         /// <param name="phone">電話號碼</param>
         /// <returns>會員總數</returns>
         int GetTotalCountFromSearchByPhone(string phone);
+
+        /// <summary>
+        /// 更新會員資料
+        /// </summary>
+        /// <param name="entity">要更新的會員資料</param>
+        /// <returns>更新是否成功</returns>
+        bool UpdateMemberData(MemberEntity entity);
     }
 }

@@ -71,7 +71,58 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
         [HttpGet]
         public ActionResult EditMemberData([FromQuery] int memberId)
         {
-            return View(memberId);
+            try
+            {
+                var memberDTO = _memberService.GetById(memberId);
+                if (memberDTO == null)
+                {
+                    return NotFound();
+                }
+
+                var member = _controllerMapProfile.MapToMember(memberDTO);
+                return View(member);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "取得會員資料時發生錯誤。MemberId: {MemberId}", memberId);
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditMemberData(Member member)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return View(member);
+                }
+
+                var result = _memberService.UpdateMemberData(new MemberDTO
+                {
+                    MemberId = member.MemberId,
+                    Name = member.Name,
+                    Phone = member.Phone,
+                    Birthday = member.Birthday,
+                    Memo = member.Memo
+                });
+
+                if (result)
+                {
+                    return RedirectToAction("Index");
+                }
+
+                ModelState.AddModelError("", "更新會員資料失敗");
+                return View(member);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "更新會員資料時發生錯誤。MemberId: {MemberId}", member.MemberId);
+                ModelState.AddModelError("", "處理過程發生錯誤");
+                return View(member);
+            }
         }
 
         [HttpPost]

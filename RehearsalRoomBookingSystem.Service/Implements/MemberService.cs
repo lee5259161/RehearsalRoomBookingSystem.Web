@@ -183,5 +183,57 @@ namespace RehearsalRoomBookingSystem.Service.Implements
 
             return _memberRepository.GetTotalCountFromSearchByPhone(phone);
         }
+
+        public MemberDTO GetById(int memberId)
+        {
+            try
+            {
+                if (memberId <= 0)
+                {
+                    Log.Warning("無效的會員Id。MemberId: {MemberId}", memberId);
+                    return null;
+                }
+
+                var entity = _memberRepository.GetById(memberId);
+                if (entity == null)
+                {
+                    Log.Warning("找不到指定的會員。MemberId: {MemberId}", memberId);
+                    return null;
+                }
+
+                return _serviceMapProfile.MapToMemberDTO(entity);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "取得會員資料時發生錯誤。MemberId: {MemberId}", memberId);
+                return null;
+            }
+        }
+
+        public bool UpdateMemberData(MemberDTO memberDTO)
+        {
+            try
+            {
+                if (memberDTO == null)
+                {
+                    Log.Warning("會員資料不可為空");
+                    return false;
+                }
+
+                if (memberDTO.MemberId <= 0)
+                {
+                    Log.Warning("無效的會員Id。MemberId: {MemberId}", memberDTO.MemberId);
+                    return false;
+                }
+
+                var entity = _serviceMapProfile.MapToMemberEntity(memberDTO);
+                return _memberRepository.UpdateMemberData(entity);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "更新會員資料時發生錯誤。MemberId: {MemberId}", memberDTO?.MemberId);
+                return false;
+            }
+        }
     }
 }

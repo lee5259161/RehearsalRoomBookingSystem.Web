@@ -74,10 +74,10 @@
                     @Html.DisplayFor(modelItem => item.UpdateDate)
                 </td>
                 <td>
-                    <button class="btn btn-success use-btn" asp-action="UseRehearsalCardHours" id="use_@item.MemberId" data-member-id="@item.MemberId" data-member-name="@item.Name">使用</button>
-                    <button class="btn btn-danger buy-btn" asp-action="BuyRehearsalCardHours" id="buy_@item.MemberId" data-member-id="@item.MemberId" data-member-name="@item.Name">購買</button>
-                    <button class="btn btn-info details-btn" asp-action="Edit" id="details_@item.MemberId" data-member-id="@item.MemberId">明細</button>
-                    <button class="btn btn-primary edit-btn" asp-action="Edit" id="edit_@item.MemberId" data-member-id="@item.MemberId">修改資料</button>
+                    <button class="btn btn-success use-btn" id="use_@item.MemberId" data-member-id="@item.MemberId" data-member-name="@item.Name">使用</button>
+                    <button class="btn btn-danger buy-btn" id="buy_@item.MemberId" data-member-id="@item.MemberId" data-member-name="@item.Name">購買</button>
+                    <button class="btn btn-info details-btn" id="details_@item.MemberId" data-member-id="@item.MemberId">明細</button>
+                    <button class="btn btn-primary edit-btn" id="edit_@item.MemberId" data-member-id="@item.MemberId">修改資料</button>
                 </td>
             </tr>
         }
@@ -326,6 +326,13 @@
                         alert('處理過程發生錯誤');
                     }
                 });
+            });
+
+            // 當點擊修改資料按鈕時
+            $('.edit-btn').click(function(e) {
+                e.preventDefault();
+                var memberId = $(this).data('member-id');
+                window.location.href = '@Url.Action("EditMemberData", "Member")?memberId=' + memberId;
             });
         });
 

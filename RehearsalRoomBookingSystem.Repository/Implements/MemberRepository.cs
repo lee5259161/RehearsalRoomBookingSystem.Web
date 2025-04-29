@@ -393,5 +393,57 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                 return result;
             }
         }
+
+        public bool UpdateMemberData(MemberEntity entity)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        string updateQuery = @"
+                            UPDATE Members 
+                            SET Name = @Name,
+                                Phone = @Phone,
+                                Birthday = @Birthday,
+                                Memo = @Memo,
+                                UpdateDate = @UpdateDate,
+                                UpdateUser = @UpdateUser
+                            WHERE MemberId = @MemberId";
+
+                        var parameters = new
+                        {
+                            entity.MemberId,
+                            entity.Name,
+                            entity.Phone,
+                            entity.Birthday,
+                            entity.Memo,
+                            UpdateDate = DateTime.Now,
+                            UpdateUser = _userContextHelper.GetCurrentUserAccount()
+                        };
+
+                        var result = connection.Execute(updateQuery, parameters, transaction);
+
+                        if (result != 1)
+                        {
+                            transaction.Rollback();
+                            Log.Warning("更新會員資料失敗。MemberId: {MemberId}", entity.MemberId);
+                            return false;
+                        }
+
+                        transaction.Commit();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        Log.Error(ex, "更新會員資料時發生錯誤。MemberId: {MemberId}", entity.MemberId);
+                        return false;
+                    }
+                }
+            }
+        }
     }
 }
