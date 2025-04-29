@@ -31,7 +31,7 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
 
         // GET: MemberController
         [HttpGet]
-        public ActionResult Index(int? page, string phone)
+        public ActionResult Index([FromQuery] int? page, string phone)
         {
             int pageNumber = page ?? 1;
             const int pageSize = 10;
@@ -91,7 +91,7 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult EditMemberData(Member member)
+        public ActionResult EditMemberData([FromForm]Member member)
         {
             try
             {
@@ -192,7 +192,7 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
         }
 
         [HttpGet]
-        public ActionResult GetMemberTransactions(int memberId, int? page)
+        public ActionResult GetMemberTransactions([FromQuery]int memberId, int? page)
         {
             try
             {
