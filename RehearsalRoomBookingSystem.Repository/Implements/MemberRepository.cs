@@ -354,5 +354,44 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                 }
             }
         }
+
+        public IEnumerable<MemberEntity> SearchByPhone(string phone, int pageNumber, int pageSize)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone], 
+                                     m.[Card_Available_Hours], m.[Memo], 
+                                     a.[Name] as [UpdateUser], m.[UpdateDate] 
+                              FROM [Members] m
+                              LEFT JOIN [Administrators] a ON m.[UpdateUser] = a.[Account]
+                              WHERE m.[Phone] LIKE @Phone
+                              ORDER BY m.[MemberId] DESC
+                              LIMIT @PageSize OFFSET @Offset";
+
+                var offset = (pageNumber - 1) * pageSize;
+
+                var result = connection.Query<MemberEntity>(
+                    query,
+                    new { PageSize = pageSize, Offset = offset, Phone = $"%{phone}%" }
+                );
+                return result;
+            }
+        }
+
+        public int GetTotalCountFromSearchByPhone(string phone)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                string query = @"SELECT COUNT([MemberId]) 
+                                        FROM [Members] 
+                                        WHERE [Phone] LIKE @Phone";
+
+                var result = connection.QueryFirstOrDefault<int>(
+                    query,
+                    new {Phone = $"%{phone}%" }
+                );
+                return result;
+            }
+        }
     }
 }

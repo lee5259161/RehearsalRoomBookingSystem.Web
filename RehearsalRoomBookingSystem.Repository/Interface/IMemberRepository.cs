@@ -51,5 +51,19 @@ namespace RehearsalRoomBookingSystem.Repository.Interface
         /// <param name="memberId">會員Id</param>
         /// <returns>處理結果</returns>
         BuyCardTimeResultEntity BuyCardTime(int memberId);
+
+        /// <summary>
+        /// 依電話搜尋會員
+        /// </summary>
+        /// <param name="phone">電話號碼</param>
+        /// <returns>符合的會員資料清單</returns>
+        IEnumerable<MemberEntity> SearchByPhone(string phone, int pageNumber, int pageSize);
+
+        /// <summary>
+        /// 取得依電話搜尋會員的會員總數
+        /// </summary>
+        /// <param name="phone">電話號碼</param>
+        /// <returns>會員總數</returns>
+        int GetTotalCountFromSearchByPhone(string phone);
     }
 }

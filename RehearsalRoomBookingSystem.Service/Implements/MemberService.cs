@@ -152,5 +152,36 @@ namespace RehearsalRoomBookingSystem.Service.Implements
                 };
             }
         }
+
+        public IEnumerable<MemberDTO> SearchByPhone(string phone, int pageNumber, int pageSize)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(phone))
+                {
+                    Log.Warning("搜尋會員時電話號碼為空");
+                    return Enumerable.Empty<MemberDTO>();
+                }
+
+                var entities = _memberRepository.SearchByPhone(phone, pageNumber, pageSize);
+                return _serviceMapProfile.MapToMemberDTOs(entities);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "搜尋會員時發生錯誤。Phone: {Phone}", phone);
+                return Enumerable.Empty<MemberDTO>();
+            }
+        }
+
+        public int GetTotalCountFromSearchByPhone(string phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+            {
+                Log.Warning("計算依電話搜尋會員的數量總數時電話號碼為空");
+                return 0;
+            }
+
+            return _memberRepository.GetTotalCountFromSearchByPhone(phone);
+        }
     }
 }

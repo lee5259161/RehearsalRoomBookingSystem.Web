@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RehearsalRoomBookingSystem.Service.Interface;
+using RehearsalRoomBookingSystem.Service.DTOs;
 using RehearsalRoomBookingSystem.Web.Infrastructure.MappingProfile;
 using RehearsalRoomBookingSystem.Web.Models.ViewModels;
 using RehearsalRoomBookingSystem.Web.Models.DataModel;
@@ -29,13 +30,26 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
         }
 
         // GET: MemberController
-        public ActionResult Index(int? page)
+        [HttpGet]
+        public ActionResult Index(int? page, string phone)
         {
             int pageNumber = page ?? 1;
             const int pageSize = 10;
 
-            var totalCount = _memberService.GetTotalCount();
-            var memberDTOs = _memberService.GetPagedCollection(pageNumber, pageSize);
+            var totalCount = 0;
+            IEnumerable<MemberDTO> memberDTOs;
+            
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                memberDTOs = _memberService.SearchByPhone(phone, pageNumber, pageSize);
+                totalCount = _memberService.GetTotalCountFromSearchByPhone(phone);
+            }
+            else
+            {
+                memberDTOs = _memberService.GetPagedCollection(pageNumber, pageSize);
+                totalCount = _memberService.GetTotalCount();
+            }
+
             var members = _controllerMapProfile.MapToMembers(memberDTOs);
 
             var memberViewModel = new MemberViewModel
