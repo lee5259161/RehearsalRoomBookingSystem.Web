@@ -39,6 +39,13 @@ namespace RehearsalRoomBookingSystem.Web.Models.DataModel
         public string Phone { get; set; }
 
         /// <summary>
+        /// Gets or sets the member's birthday.
+        /// </summary>
+        [Display(Name = "生日")]
+        [DisplayFormat(DataFormatString = "{0:yyyy/MM/dd}", ApplyFormatInEditMode = true)]
+        public DateTime Birthday { get; set; }
+
+        /// <summary>
         /// Gets or sets the number of available hours on the member's card.
         /// </summary>
         [Display(Name = "團卡時數")]

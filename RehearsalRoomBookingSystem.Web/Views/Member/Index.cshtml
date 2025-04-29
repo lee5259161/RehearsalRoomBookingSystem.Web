@@ -31,6 +31,9 @@
                 @Html.DisplayNameFor(model => model.Members[0].Phone)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.Members[0].Birthday)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.Members[0].Card_Available_Hours)
             </th>
             <th>
@@ -54,6 +57,9 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Phone)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Birthday)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Card_Available_Hours)

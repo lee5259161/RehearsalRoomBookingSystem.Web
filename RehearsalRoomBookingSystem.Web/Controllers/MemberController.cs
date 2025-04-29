@@ -68,6 +68,12 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
             return View(memberViewModel);
         }
 
+        [HttpGet]
+        public ActionResult EditMemberData([FromQuery] int memberId)
+        {
+            return View(memberId);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult UseCardTime([FromBody] UseCardTimeParameter parameter)

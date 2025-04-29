@@ -21,6 +21,7 @@ namespace RehearsalRoomBookingSystem.Web.Infrastructure.MappingProfile
                 MemberId = dto.MemberId,
                 Name = dto.Name,
                 Phone = dto.Phone,
+                Birthday = dto.Birthday,
                 Card_Available_Hours = dto.Card_Available_Hours,
                 Memo = dto.Memo,
                 UpdateUser = dto.UpdateUser,

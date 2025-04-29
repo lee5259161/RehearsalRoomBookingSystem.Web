@@ -45,7 +45,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         {
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone], 
+                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone],  m.[Birthday],
                                      m.[Card_Available_Hours], m.[Memo], 
                                      a.[Name] as [UpdateUser], m.[UpdateDate] 
                               FROM [Members] m
@@ -59,7 +59,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         {
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone], 
+                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone],  m.[Birthday],
                                      m.[Card_Available_Hours], m.[Memo], 
                                      a.[Name] as [UpdateUser], m.[UpdateDate] 
                               FROM [Members] m
@@ -82,7 +82,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         {
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = @"SELECT [MemberId], [Name], [Phone], 
+                string query = @"SELECT [MemberId], [Name], [Phone], [Birthday],
                                [Card_Available_Hours], [Memo], 
                                [UpdateUser], [UpdateDate] 
                         FROM [Members] 
@@ -359,7 +359,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         {
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone], 
+                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone], m.[Birthday],
                                      m.[Card_Available_Hours], m.[Memo], 
                                      a.[Name] as [UpdateUser], m.[UpdateDate] 
                               FROM [Members] m
