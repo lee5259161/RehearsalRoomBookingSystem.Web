@@ -69,6 +69,59 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
         }
 
         [HttpGet]
+        public ActionResult CreateMemberData()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CreateMemberData([FromForm]Member member)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return View(member);
+                }
+
+                // 檢查電話是否已存在
+                if (_memberService.IsPhoneExist(member.Phone))
+                {
+                    ModelState.AddModelError("Phone", "此電話號碼已被使用");
+                    return View(member);
+                }
+
+                var memberDTO = new MemberDTO
+                {
+                    Name = member.Name,
+                    Phone = member.Phone,
+                    Birthday = member.Birthday,
+                    Memo = member.Memo,
+                    Card_Available_Hours = 0,
+                    UpdateUser = User.Identity.Name,
+                    UpdateDate = DateTime.Now
+                };
+
+                var result = _memberService.CreateMember(memberDTO);
+
+                if (result)
+                {
+                    return RedirectToAction("Index");
+                }
+
+                ModelState.AddModelError("", "新增會員失敗");
+                return View(member);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "新增會員時發生錯誤");
+                ModelState.AddModelError("", "處理過程發生錯誤");
+                return View(member);
+            }
+        }
+
+        [HttpGet]
         public ActionResult EditMemberData([FromQuery] int memberId)
         {
             try
@@ -97,6 +150,13 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    return View(member);
+                }
+
+                // 檢查電話是否已存在
+                if (_memberService.IsPhoneExist(member.Phone))
+                {
+                    ModelState.AddModelError("Phone", "此電話號碼已被使用");
                     return View(member);
                 }
 

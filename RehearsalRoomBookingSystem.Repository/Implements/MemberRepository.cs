@@ -445,5 +445,66 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                 }
             }
         }
+
+        public bool IsPhoneExist(string phone)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                string query = @"SELECT COUNT([MemberId]) 
+                               FROM [Members] 
+                               WHERE [Phone] = @Phone";
+
+                var count = connection.QueryFirstOrDefault<int>(query, new { Phone = phone });
+                return count > 0;
+            }
+        }
+
+        public bool CreateMember(MemberEntity entity)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        string insertQuery = @"
+                            INSERT INTO Members 
+                            (Name, Phone, Birthday, Card_Available_Hours, Memo, UpdateUser, UpdateDate)
+                            VALUES 
+                            (@Name, @Phone, @Birthday, @Card_Available_Hours, @Memo, @UpdateUser, @UpdateDate)";
+
+                        var parameters = new
+                        {
+                            entity.Name,
+                            entity.Phone,
+                            entity.Birthday,
+                            entity.Card_Available_Hours,
+                            entity.Memo,
+                            UpdateUser = _userContextHelper.GetCurrentUserAccount(),
+                            UpdateDate = DateTime.Now
+                        };
+
+                        var result = connection.Execute(insertQuery, parameters, transaction);
+
+                        if (result != 1)
+                        {
+                            transaction.Rollback();
+                            Log.Warning("新增會員資料失敗");
+                            return false;
+                        }
+
+                        transaction.Commit();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        Log.Error(ex, "新增會員資料時發生錯誤");
+                        return false;
+                    }
+                }
+            }
+        }
     }
 }

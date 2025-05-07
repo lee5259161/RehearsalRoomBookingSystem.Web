@@ -235,5 +235,64 @@ namespace RehearsalRoomBookingSystem.Service.Implements
                 return false;
             }
         }
+
+        public bool IsPhoneExist(string phone)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(phone))
+                {
+                    Log.Warning("檢查電話是否存在時，電話號碼為空");
+                    return false;
+                }
+
+                return _memberRepository.IsPhoneExist(phone);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "檢查電話是否存在時發生錯誤。Phone: {Phone}", phone);
+                return false;
+            }
+        }
+
+        public bool CreateMember(MemberDTO memberDTO)
+        {
+            try
+            {
+                if (memberDTO == null)
+                {
+                    Log.Warning("創建會員時，會員資料為空");
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(memberDTO.Name))
+                {
+                    Log.Warning("創建會員時，姓名為空");
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(memberDTO.Phone))
+                {
+                    Log.Warning("創建會員時，電話為空");
+                    return false;
+                }
+
+                // 檢查電話是否已存在
+                if (IsPhoneExist(memberDTO.Phone))
+                {
+                    Log.Warning("創建會員時，電話已存在。Phone: {Phone}", memberDTO.Phone);
+                    return false;
+                }
+
+                var entity = _serviceMapProfile.MapToMemberEntity(memberDTO);
+                entity.Card_Available_Hours = 0;
+                return _memberRepository.CreateMember(entity);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "創建會員時發生錯誤");
+                return false;
+            }
+        }
     }
 }

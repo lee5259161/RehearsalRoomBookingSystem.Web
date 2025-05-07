@@ -9,15 +9,16 @@
 
 @Html.AntiForgeryToken()
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="mb-3">
     <h1>會員資料</h1>
-    <div class="col-md-4">
-        <div class="input-group">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="input-group" style="max-width: 500px;">
             <label for="phoneSearch" class="input-group-text">依電話搜尋</label>
             <input type="text" id="phoneSearch" class="form-control" placeholder="請輸入電話號碼" style="max-width: 180px;" value="@Context.Request.Query["phone"]">
             <button class="btn btn-primary" id="searchBtn">搜尋</button>
             <button class="btn btn-secondary" id="clearBtn">清空</button>
         </div>
+        <button class="btn btn-outline-primary" onclick="location.href='@Url.Action("CreateMemberData", "Member")'">新增會員</button>
     </div>
 </div>
 

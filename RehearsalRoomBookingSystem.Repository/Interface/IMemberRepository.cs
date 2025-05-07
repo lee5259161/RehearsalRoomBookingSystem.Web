@@ -72,5 +72,19 @@ namespace RehearsalRoomBookingSystem.Repository.Interface
         /// <param name="entity">要更新的會員資料</param>
         /// <returns>更新是否成功</returns>
         bool UpdateMemberData(MemberEntity entity);
+
+        /// <summary>
+        /// 檢查電話號碼是否已存在
+        /// </summary>
+        /// <param name="phone">電話號碼</param>
+        /// <returns>是否已存在</returns>
+        bool IsPhoneExist(string phone);
+
+        /// <summary>
+        /// 建立新會員
+        /// </summary>
+        /// <param name="entity">會員資料</param>
+        /// <returns>是否建立成功</returns>
+        bool CreateMember(MemberEntity entity);
     }
 }
