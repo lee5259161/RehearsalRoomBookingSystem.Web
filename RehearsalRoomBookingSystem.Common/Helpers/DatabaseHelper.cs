@@ -184,7 +184,7 @@ VALUES
                                 ");
 
                                 // 建立預設管理員帳號 (admin/admin)
-                                var defaultPassword = _encryptHelper.SHAEncrypt("admin", ENCRYPT_SALT);
+                                var defaultPassword = _encryptHelper.SHAEncrypt("admin20", ENCRYPT_SALT);
                                 conn.Execute($@"
                                     INSERT INTO [Administrators] 
                                         ([TypeId], [Name], [Account], [Password], [UpdateUser], [UpdateDate])

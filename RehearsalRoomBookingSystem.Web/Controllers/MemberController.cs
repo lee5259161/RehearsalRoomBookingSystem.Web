@@ -153,8 +153,16 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
                     return View(member);
                 }
 
-                // 檢查電話是否已存在
-                if (_memberService.IsPhoneExist(member.Phone))
+                // 取得原始會員資料
+                var originalMember = _memberService.GetById(member.MemberId);
+                if (originalMember == null)
+                {
+                    ModelState.AddModelError("", "找不到會員資料");
+                    return View(member);
+                }
+
+                // 檢查電話是否已存在，但如果是原本的電話則允許
+                if (_memberService.IsPhoneExist(member.Phone) && member.Phone != originalMember.Phone)
                 {
                     ModelState.AddModelError("Phone", "此電話號碼已被使用");
                     return View(member);

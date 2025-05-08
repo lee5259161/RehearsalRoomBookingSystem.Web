@@ -38,6 +38,7 @@ namespace RehearsalRoomBookingSystem.Web.Models.DataModel
         /// </summary>
         [Display(Name = "電話")]
         [Required(ErrorMessage = "請輸入電話")]
+        [RegularExpression(@"^09\d{8}$", ErrorMessage = "電話號碼格式不正確，需為09開頭後面接8個數字")]
         public string Phone { get; set; }
 
         /// <summary>
@@ -58,6 +59,7 @@ namespace RehearsalRoomBookingSystem.Web.Models.DataModel
         /// Gets or sets any additional memo for the member.
         /// </summary>
         [Display(Name = "備註")]
+        [StringLength(100, ErrorMessage = "備註不能超過100個字")]
         public string Memo { get; set; }
 
         /// <summary>

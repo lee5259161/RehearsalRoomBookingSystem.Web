@@ -3,6 +3,8 @@
 @using X.PagedList.Mvc.Core;
 @model MemberViewModel
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
 @{
     ViewBag.Title = "會員資料";
 }
@@ -66,7 +68,22 @@
                     @Html.DisplayFor(modelItem => item.Card_Available_Hours)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Memo)
+                    @{
+                        var memo = item.Memo ?? "";
+                        if (memo.Length > 12)
+                        {
+                            <span>@(memo.Substring(0, 5))...</span>
+                            <button class="btn btn-sm btn-outline-info ms-2 memo-btn" 
+                                    data-memo="@memo" 
+                                    title="點擊查看完整備註">
+                                <i class="bi bi-info-circle"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(modelItem => item.Memo)
+                        }
+                    }
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.UpdateUser)
@@ -334,6 +351,13 @@
                 e.preventDefault();
                 var memberId = $(this).data('member-id');
                 window.location.href = '@Url.Action("EditMemberData", "Member")?memberId=' + memberId;
+            });
+
+            // Add this new handler for memo buttons
+            $(document).on('click', '.memo-btn', function(e) {
+                e.preventDefault();
+                var memo = $(this).data('memo');
+                alert(memo);
             });
         });
 
