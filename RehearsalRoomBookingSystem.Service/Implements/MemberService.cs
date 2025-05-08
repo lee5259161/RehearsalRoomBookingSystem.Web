@@ -152,5 +152,147 @@ namespace RehearsalRoomBookingSystem.Service.Implements
                 };
             }
         }
+
+        public IEnumerable<MemberDTO> SearchByPhone(string phone, int pageNumber, int pageSize)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(phone))
+                {
+                    Log.Warning("搜尋會員時電話號碼為空");
+                    return Enumerable.Empty<MemberDTO>();
+                }
+
+                var entities = _memberRepository.SearchByPhone(phone, pageNumber, pageSize);
+                return _serviceMapProfile.MapToMemberDTOs(entities);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "搜尋會員時發生錯誤。Phone: {Phone}", phone);
+                return Enumerable.Empty<MemberDTO>();
+            }
+        }
+
+        public int GetTotalCountFromSearchByPhone(string phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+            {
+                Log.Warning("計算依電話搜尋會員的數量總數時電話號碼為空");
+                return 0;
+            }
+
+            return _memberRepository.GetTotalCountFromSearchByPhone(phone);
+        }
+
+        public MemberDTO GetById(int memberId)
+        {
+            try
+            {
+                if (memberId <= 0)
+                {
+                    Log.Warning("無效的會員Id。MemberId: {MemberId}", memberId);
+                    return null;
+                }
+
+                var entity = _memberRepository.GetById(memberId);
+                if (entity == null)
+                {
+                    Log.Warning("找不到指定的會員。MemberId: {MemberId}", memberId);
+                    return null;
+                }
+
+                return _serviceMapProfile.MapToMemberDTO(entity);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "取得會員資料時發生錯誤。MemberId: {MemberId}", memberId);
+                return null;
+            }
+        }
+
+        public bool UpdateMemberData(MemberDTO memberDTO)
+        {
+            try
+            {
+                if (memberDTO == null)
+                {
+                    Log.Warning("會員資料不可為空");
+                    return false;
+                }
+
+                if (memberDTO.MemberId <= 0)
+                {
+                    Log.Warning("無效的會員Id。MemberId: {MemberId}", memberDTO.MemberId);
+                    return false;
+                }
+
+                var entity = _serviceMapProfile.MapToMemberEntity(memberDTO);
+                return _memberRepository.UpdateMemberData(entity);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "更新會員資料時發生錯誤。MemberId: {MemberId}", memberDTO?.MemberId);
+                return false;
+            }
+        }
+
+        public bool IsPhoneExist(string phone)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(phone))
+                {
+                    Log.Warning("檢查電話是否存在時，電話號碼為空");
+                    return false;
+                }
+
+                return _memberRepository.IsPhoneExist(phone);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "檢查電話是否存在時發生錯誤。Phone: {Phone}", phone);
+                return false;
+            }
+        }
+
+        public bool CreateMember(MemberDTO memberDTO)
+        {
+            try
+            {
+                if (memberDTO == null)
+                {
+                    Log.Warning("創建會員時，會員資料為空");
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(memberDTO.Name))
+                {
+                    Log.Warning("創建會員時，姓名為空");
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(memberDTO.Phone))
+                {
+                    Log.Warning("創建會員時，電話為空");
+                    return false;
+                }
+
+                // 檢查電話是否已存在
+                if (IsPhoneExist(memberDTO.Phone))
+                {
+                    Log.Warning("創建會員時，電話已存在。Phone: {Phone}", memberDTO.Phone);
+                    return false;
+                }
+
+                var entity = _serviceMapProfile.MapToMemberEntity(memberDTO);
+                entity.Card_Available_Hours = 0;
+                return _memberRepository.CreateMember(entity);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "創建會員時發生錯誤");
+                return false;
+            }
+        }
     }
 }

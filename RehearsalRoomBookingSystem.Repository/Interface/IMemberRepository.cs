@@ -51,5 +51,40 @@ namespace RehearsalRoomBookingSystem.Repository.Interface
         /// <param name="memberId">會員Id</param>
         /// <returns>處理結果</returns>
         BuyCardTimeResultEntity BuyCardTime(int memberId);
+
+        /// <summary>
+        /// 依電話搜尋會員
+        /// </summary>
+        /// <param name="phone">電話號碼</param>
+        /// <returns>符合的會員資料清單</returns>
+        IEnumerable<MemberEntity> SearchByPhone(string phone, int pageNumber, int pageSize);
+
+        /// <summary>
+        /// 取得依電話搜尋會員的會員總數
+        /// </summary>
+        /// <param name="phone">電話號碼</param>
+        /// <returns>會員總數</returns>
+        int GetTotalCountFromSearchByPhone(string phone);
+
+        /// <summary>
+        /// 更新會員資料
+        /// </summary>
+        /// <param name="entity">要更新的會員資料</param>
+        /// <returns>更新是否成功</returns>
+        bool UpdateMemberData(MemberEntity entity);
+
+        /// <summary>
+        /// 檢查電話號碼是否已存在
+        /// </summary>
+        /// <param name="phone">電話號碼</param>
+        /// <returns>是否已存在</returns>
+        bool IsPhoneExist(string phone);
+
+        /// <summary>
+        /// 建立新會員
+        /// </summary>
+        /// <param name="entity">會員資料</param>
+        /// <returns>是否建立成功</returns>
+        bool CreateMember(MemberEntity entity);
     }
 }

@@ -3,13 +3,26 @@
 @using X.PagedList.Mvc.Core;
 @model MemberViewModel
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
 @{
     ViewBag.Title = "會員資料";
 }
 
 @Html.AntiForgeryToken()
 
-<h1>會員資料</h1>
+<div class="mb-3">
+    <h1>會員資料</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="input-group" style="max-width: 500px;">
+            <label for="phoneSearch" class="input-group-text">依電話搜尋</label>
+            <input type="text" id="phoneSearch" class="form-control" placeholder="請輸入電話號碼" style="max-width: 180px;" value="@Context.Request.Query["phone"]">
+            <button class="btn btn-primary" id="searchBtn">搜尋</button>
+            <button class="btn btn-secondary" id="clearBtn">清空</button>
+        </div>
+        <button class="btn btn-outline-primary" onclick="location.href='@Url.Action("CreateMemberData", "Member")'">新增會員</button>
+    </div>
+</div>
 
 <table class="table">
     <thead>
@@ -19,6 +32,9 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Members[0].Phone)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Members[0].Birthday)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Members[0].Card_Available_Hours)
@@ -46,10 +62,28 @@
                     @Html.DisplayFor(modelItem => item.Phone)
                 </td>
                 <td>
+                    @Html.DisplayFor(modelItem => item.Birthday)
+                </td>
+                <td>
                     @Html.DisplayFor(modelItem => item.Card_Available_Hours)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Memo)
+                    @{
+                        var memo = item.Memo ?? "";
+                        if (memo.Length > 12)
+                        {
+                            <span>@(memo.Substring(0, 5))...</span>
+                            <button class="btn btn-sm btn-outline-info ms-2 memo-btn" 
+                                    data-memo="@memo" 
+                                    title="點擊查看完整備註">
+                                <i class="bi bi-info-circle"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(modelItem => item.Memo)
+                        }
+                    }
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.UpdateUser)
@@ -58,10 +92,10 @@
                     @Html.DisplayFor(modelItem => item.UpdateDate)
                 </td>
                 <td>
-                    <button class="btn btn-success use-btn" asp-action="UseRehearsalCardHours" id="use_@item.MemberId" data-member-id="@item.MemberId" data-member-name="@item.Name">使用</button>
-                    <button class="btn btn-danger buy-btn" asp-action="BuyRehearsalCardHours" id="buy_@item.MemberId" data-member-id="@item.MemberId" data-member-name="@item.Name">購買</button>
-                    <button class="btn btn-info details-btn" asp-action="Edit" id="details_@item.MemberId" data-member-id="@item.MemberId">明細</button>
-                    <button class="btn btn-primary edit-btn" asp-action="Edit" id="edit_@item.MemberId" data-member-id="@item.MemberId">修改資料</button>
+                    <button class="btn btn-success use-btn" id="use_@item.MemberId" data-member-id="@item.MemberId" data-member-name="@item.Name">使用</button>
+                    <button class="btn btn-danger buy-btn" id="buy_@item.MemberId" data-member-id="@item.MemberId" data-member-name="@item.Name">購買</button>
+                    <button class="btn btn-info details-btn" id="details_@item.MemberId" data-member-id="@item.MemberId">明細</button>
+                    <button class="btn btn-primary edit-btn" id="edit_@item.MemberId" data-member-id="@item.MemberId">修改資料</button>
                 </td>
             </tr>
         }
@@ -73,12 +107,14 @@
         共 @Model.TotalCount 筆資料
     </div>
     <div>
-        @Html.PagedListPager(Model.Members, page => Url.Action("Index", new { page }), new PagedListRenderOptions
-   {
-       LiElementClasses = new string[] { "page-item" },
-       PageClasses = new string[] { "page-link" },
-       Display = PagedListDisplayMode.IfNeeded
-   })
+        @Html.PagedListPager(Model.Members, 
+            page => Url.Action("Index", new { page, phone = Context.Request.Query["phone"] }), 
+            new PagedListRenderOptions
+            {
+                LiElementClasses = new string[] { "page-item" },
+                PageClasses = new string[] { "page-link" },
+                Display = PagedListDisplayMode.IfNeeded
+            })
     </div>
 </div>
 
@@ -154,6 +190,22 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
+            // 監聽 modal 關閉事件
+            $('#transactionDetailsModal').on('hidden.bs.modal', function () {
+                location.reload();
+            });
+
+            // 當點擊搜尋按鈕時
+            $('#searchBtn').click(function() {
+                var phone = $('#phoneSearch').val();
+                window.location.href = '@Url.Action("Index", "Member")' + '?phone=' + encodeURIComponent(phone);
+            });
+
+            // 當點擊清空按鈕時
+            $('#clearBtn').click(function() {
+                window.location.href = '@Url.Action("Index", "Member")';
+            });
+
             // 當點擊使用按鈕時
             $('.use-btn').click(function (e) {
                 e.preventDefault();
@@ -287,8 +339,11 @@
                     },
                     success: function (result) {
                         if (result.success) {
+                            // 找到對應的回復按鈕並替換成已回復文字
+                            var $button = $(`button[data-transaction-id="${transactionId}"]`);
+                            $button.replaceWith('<span class="text-muted">已回復</span>');
                             alert('回復成功');
-                            location.reload();
+                            loadTransactions(memberId, currentPage);
                         } else {
                             alert(result.message || '回復失敗');
                         }
@@ -297,6 +352,20 @@
                         alert('處理過程發生錯誤');
                     }
                 });
+            });
+
+            // 當點擊修改資料按鈕時
+            $('.edit-btn').click(function(e) {
+                e.preventDefault();
+                var memberId = $(this).data('member-id');
+                window.location.href = '@Url.Action("EditMemberData", "Member")?memberId=' + memberId;
+            });
+
+            // Add this new handler for memo buttons
+            $(document).on('click', '.memo-btn', function(e) {
+                e.preventDefault();
+                var memo = $(this).data('memo');
+                alert(memo);
             });
         });
 
@@ -334,14 +403,16 @@
                         row.append($('<td>').text(trans.CreateUser));
 
                         var actionCell = $('<td>');
-                        if (!trans.isRecovered && (trans.TypeId === 1 || trans.TypeId === 2)) {
+                        // 只有當交易未被回復過，且是購買或使用類型時才顯示回復按鈕
+                        if (!trans.IsRecovered && (trans.TypeId === 1 || trans.TypeId === 2)) {
                             var recoverButton = $('<button>')
-                                .addClass('btn btn-sm btn-warning')
-                                .text('回復')
-                                .on('click', function () {
-                                    recoverTransaction(trans.TransactionId, memberId);
-                                });
+                                .addClass('btn btn-sm btn-warning recover-btn')
+                                .attr('data-transaction-id', trans.TransactionId)
+                                .attr('data-member-id', memberId)
+                                .text('回復');
                             actionCell.append(recoverButton);
+                        } else if (trans.IsRecovered) {
+                            actionCell.append($('<span class="text-muted">已回復</span>'));
                         }
                         row.append(actionCell);
                         tbody.append(row);
@@ -455,6 +526,9 @@
                 },
                 success: function (result) {
                     if (result.success) {
+                        // 找到對應的回復按鈕並替換成已回復文字
+                        var $button = $(`button[data-transaction-id="${transactionId}"]`);
+                        $button.replaceWith('<span class="text-muted">已回復</span>');
                         alert('回復成功');
                         loadTransactions(memberId, currentPage);
                     } else {

@@ -18,7 +18,7 @@ namespace RehearsalRoomBookingSystem.Web.Models.DataModel
             Memo = string.Empty;
             UpdateUser = string.Empty;
             UpdateDate = DateTime.Now;
-    }
+        }
 
         /// <summary>
         /// Gets or sets the member Id.
@@ -30,13 +30,24 @@ namespace RehearsalRoomBookingSystem.Web.Models.DataModel
         /// Gets or sets the member's name.
         /// </summary>
         [Display(Name = "姓名")]
+        [Required(ErrorMessage = "請輸入姓名")]
         public string Name { get; set; }
 
         /// <summary>
         /// Gets or sets the member's phone number.
         /// </summary>
         [Display(Name = "電話")]
+        [Required(ErrorMessage = "請輸入電話")]
+        [RegularExpression(@"^09\d{8}$", ErrorMessage = "電話號碼格式不正確，需為09開頭後面接8個數字")]
         public string Phone { get; set; }
+
+        /// <summary>
+        /// Gets or sets the member's birthday.
+        /// </summary>
+        [Display(Name = "生日")]
+        [Required(ErrorMessage = "請輸入生日")]
+        [DisplayFormat(DataFormatString = "{0:yyyy/MM/dd}", ApplyFormatInEditMode = true)]
+        public DateTime Birthday { get; set; }
 
         /// <summary>
         /// Gets or sets the number of available hours on the member's card.
@@ -48,6 +59,7 @@ namespace RehearsalRoomBookingSystem.Web.Models.DataModel
         /// Gets or sets any additional memo for the member.
         /// </summary>
         [Display(Name = "備註")]
+        [StringLength(100, ErrorMessage = "備註不能超過100個字")]
         public string Memo { get; set; }
 
         /// <summary>

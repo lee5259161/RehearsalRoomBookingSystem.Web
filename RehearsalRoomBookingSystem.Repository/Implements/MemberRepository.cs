@@ -45,7 +45,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         {
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone], 
+                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone],  m.[Birthday],
                                      m.[Card_Available_Hours], m.[Memo], 
                                      a.[Name] as [UpdateUser], m.[UpdateDate] 
                               FROM [Members] m
@@ -59,7 +59,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         {
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone], 
+                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone],  m.[Birthday],
                                      m.[Card_Available_Hours], m.[Memo], 
                                      a.[Name] as [UpdateUser], m.[UpdateDate] 
                               FROM [Members] m
@@ -82,7 +82,7 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
         {
             using (var connection = new SqliteConnection(_connectionString))
             {
-                string query = @"SELECT [MemberId], [Name], [Phone], 
+                string query = @"SELECT [MemberId], [Name], [Phone], [Birthday],
                                [Card_Available_Hours], [Memo], 
                                [UpdateUser], [UpdateDate] 
                         FROM [Members] 
@@ -350,6 +350,158 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                         transaction.Rollback();
                         Log.Error(ex, "購買會員練團卡時數時發生錯誤。MemberId: {MemberId}", memberId);
                         throw;
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<MemberEntity> SearchByPhone(string phone, int pageNumber, int pageSize)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                string query = @"SELECT m.[MemberId], m.[Name], m.[Phone], m.[Birthday],
+                                     m.[Card_Available_Hours], m.[Memo], 
+                                     a.[Name] as [UpdateUser], m.[UpdateDate] 
+                              FROM [Members] m
+                              LEFT JOIN [Administrators] a ON m.[UpdateUser] = a.[Account]
+                              WHERE m.[Phone] LIKE @Phone
+                              ORDER BY m.[MemberId] DESC
+                              LIMIT @PageSize OFFSET @Offset";
+
+                var offset = (pageNumber - 1) * pageSize;
+
+                var result = connection.Query<MemberEntity>(
+                    query,
+                    new { PageSize = pageSize, Offset = offset, Phone = $"%{phone}%" }
+                );
+                return result;
+            }
+        }
+
+        public int GetTotalCountFromSearchByPhone(string phone)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                string query = @"SELECT COUNT([MemberId]) 
+                                        FROM [Members] 
+                                        WHERE [Phone] LIKE @Phone";
+
+                var result = connection.QueryFirstOrDefault<int>(
+                    query,
+                    new {Phone = $"%{phone}%" }
+                );
+                return result;
+            }
+        }
+
+        public bool UpdateMemberData(MemberEntity entity)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        string updateQuery = @"
+                            UPDATE Members 
+                            SET Name = @Name,
+                                Phone = @Phone,
+                                Birthday = @Birthday,
+                                Memo = @Memo,
+                                UpdateDate = @UpdateDate,
+                                UpdateUser = @UpdateUser
+                            WHERE MemberId = @MemberId";
+
+                        var parameters = new
+                        {
+                            entity.MemberId,
+                            entity.Name,
+                            entity.Phone,
+                            entity.Birthday,
+                            entity.Memo,
+                            UpdateDate = DateTime.Now,
+                            UpdateUser = _userContextHelper.GetCurrentUserAccount()
+                        };
+
+                        var result = connection.Execute(updateQuery, parameters, transaction);
+
+                        if (result != 1)
+                        {
+                            transaction.Rollback();
+                            Log.Warning("更新會員資料失敗。MemberId: {MemberId}", entity.MemberId);
+                            return false;
+                        }
+
+                        transaction.Commit();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        Log.Error(ex, "更新會員資料時發生錯誤。MemberId: {MemberId}", entity.MemberId);
+                        return false;
+                    }
+                }
+            }
+        }
+
+        public bool IsPhoneExist(string phone)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                string query = @"SELECT COUNT([MemberId]) 
+                               FROM [Members] 
+                               WHERE [Phone] = @Phone";
+
+                var count = connection.QueryFirstOrDefault<int>(query, new { Phone = phone });
+                return count > 0;
+            }
+        }
+
+        public bool CreateMember(MemberEntity entity)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        string insertQuery = @"
+                            INSERT INTO Members 
+                            (Name, Phone, Birthday, Card_Available_Hours, Memo, UpdateUser, UpdateDate)
+                            VALUES 
+                            (@Name, @Phone, @Birthday, @Card_Available_Hours, @Memo, @UpdateUser, @UpdateDate)";
+
+                        var parameters = new
+                        {
+                            entity.Name,
+                            entity.Phone,
+                            entity.Birthday,
+                            entity.Card_Available_Hours,
+                            entity.Memo,
+                            UpdateUser = _userContextHelper.GetCurrentUserAccount(),
+                            UpdateDate = DateTime.Now
+                        };
+
+                        var result = connection.Execute(insertQuery, parameters, transaction);
+
+                        if (result != 1)
+                        {
+                            transaction.Rollback();
+                            Log.Warning("新增會員資料失敗");
+                            return false;
+                        }
+
+                        transaction.Commit();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        Log.Error(ex, "新增會員資料時發生錯誤");
+                        return false;
                     }
                 }
             }

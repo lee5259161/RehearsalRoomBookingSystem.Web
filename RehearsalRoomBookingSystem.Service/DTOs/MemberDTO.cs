@@ -40,6 +40,11 @@ namespace RehearsalRoomBookingSystem.Service.DTOs
         public string Phone { get; set; }
 
         /// <summary>
+        /// Gets or sets the member's birthday.
+        /// </summary>
+        public DateTime Birthday { get; set; }
+
+        /// <summary>
         /// Gets or sets the number of available hours on the member's card.
         /// </summary>
         public int Card_Available_Hours { get; set; }

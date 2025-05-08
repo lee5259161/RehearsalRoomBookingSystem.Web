@@ -40,8 +40,9 @@ namespace RehearsalRoomBookingSystem.Common.Helpers
                     sql += @"
                     CREATE TABLE [Members] (
                        [MemberId] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                       [Name] TEXT,
-                       [Phone] TEXT,
+                       [Name] TEXT NOT NULL,
+                       [Phone] TEXT NOT NULL UNIQUE,
+                       [Birthday] datetime NOT NULL,
                        [Card_Available_Hours] int,
                        [Memo] TEXT,
                        [UpdateUser] TEXT NOT NULL,
@@ -90,28 +91,28 @@ namespace RehearsalRoomBookingSystem.Common.Helpers
 
                     // 插入測試資料
                     sql += @"
-INSERT INTO [Members] ([Name], [Phone], [Card_Available_Hours], [Memo], [UpdateUser], [UpdateDate])
+INSERT INTO [Members] ([Name], [Phone], [Birthday], [Card_Available_Hours], [Memo], [UpdateUser], [UpdateDate])
 VALUES
-    ('John Doe', '123456789', 10, 'Test Memo 1', 'Admin', datetime('now')),
-    ('Jane Smith', '987654321', 20, 'Test Memo 2', 'Admin', datetime('now')),
-    ('Michael Johnson', '555555555', 15, 'Test Memo 3', 'Admin', datetime('now')),
-    ('Emily Davis', '111111111', 5, 'Test Memo 4', 'Admin', datetime('now')),
-    ('David Wilson', '999999999', 30, 'Test Memo 5', 'Admin', datetime('now')),
-    ('Sarah Thompson', '777777777', 25, 'Test Memo 6', 'Admin', datetime('now')),
-    ('Christopher Anderson', '222222222', 8, 'Test Memo 7', 'Admin', datetime('now')),
-    ('Jessica Martinez', '888888888', 12, 'Test Memo 8', 'Admin', datetime('now')),
-    ('Matthew Taylor', '444444444', 18, 'Test Memo 9', 'Admin', datetime('now')),
-    ('Olivia Thomas', '666666666', 22, 'Test Memo 10', 'Admin', datetime('now')),
-    ('Daniel Hernandez', '333333333', 7, 'Test Memo 11', 'Admin', datetime('now')),
-    ('Sophia Moore', '555555555', 13, 'Test Memo 12', 'Admin', datetime('now')),
-    ('Andrew Clark', '777777777', 9, 'Test Memo 13', 'Admin', datetime('now')),
-    ('Isabella Lewis', '999999999', 16, 'Test Memo 14', 'Admin', datetime('now')),
-    ('Joseph Young', '111111111', 21, 'Test Memo 15', 'Admin', datetime('now')),
-    ('Ava Walker', '888888888', 6, 'Test Memo 16', 'Admin', datetime('now')),
-    ('William Hall', '222222222', 11, 'Test Memo 17', 'Admin', datetime('now')),
-    ('Mia Allen', '444444444', 17, 'Test Memo 18', 'Admin', datetime('now')),
-    ('James Green', '666666666', 23, 'Test Memo 19', 'Admin', datetime('now')),
-    ('Emma King', '333333333', 8, 'Test Memo 20', 'Admin', datetime('now'));
+    ('John Doe', '0912345678', '2003-07-15', 10, 'Test Memo 1', 'Admin', datetime('now')),
+    ('Jane Smith', '0923456789', '1998-12-28', 20, 'Test Memo 2', 'Admin', datetime('now')),
+    ('Michael Johnson', '0934567890',  '2010-03-01', 15, 'Test Memo 3', 'Admin', datetime('now')),
+    ('Emily Davis', '0945678901', '1985-05-20', 5, 'Test Memo 4', 'Admin', datetime('now')),
+    ('David Wilson', '0956789012', '2001-11-05', 30, 'Test Memo 5', 'Admin', datetime('now')),
+    ('Sarah Thompson', '0967890123', '1992-09-10', 25, 'Test Memo 6', 'Admin', datetime('now')),
+    ('Christopher Anderson', '0978901234', '2015-01-22', 8, 'Test Memo 7', 'Admin', datetime('now')),
+    ('Jessica Martinez', '0989012345', '1979-06-03', 12, 'Test Memo 8', 'Admin', datetime('now')),
+    ('Matthew Taylor', '0901123456', '2008-04-18', 18, 'Test Memo 9', 'Admin', datetime('now')),
+    ('Olivia Thomas', '0913234567', '1995-08-07', 22, 'Test Memo 10', 'Admin', datetime('now')),
+    ('Daniel Hernandez', '0924345678', '2012-10-25', 7, 'Test Memo 11', 'Admin', datetime('now')),
+    ('Sophia Moore', '0935456789', '1988-02-14', 13, 'Test Memo 12', 'Admin', datetime('now')),
+    ('Andrew Clark', '0946567890', '2005-12-31', 9, 'Test Memo 13', 'Admin', datetime('now')),
+    ('Isabella Lewis', '0957678901', '1982-07-01', 16, 'Test Memo 14', 'Admin', datetime('now')),
+    ('Joseph Young', '0968789012', '2018-09-09', 21, 'Test Memo 15', 'Admin', datetime('now')),
+    ('Ava Walker', '0979890123', '1990-04-05', 6, 'Test Memo 16', 'Admin', datetime('now')),
+    ('William Hall', '0980901234', '2000-06-12', 11, 'Test Memo 17', 'Admin', datetime('now')),
+    ('Mia Allen', '0902012345', '1976-11-29', 17, 'Test Memo 18', 'Admin', datetime('now')),
+    ('James Green', '0914123456', '2014-03-20', 23, 'Test Memo 19', 'Admin', datetime('now')),
+    ('Emma King', '0925234567', '1997-01-01', 8, 'Test Memo 20', 'Admin', datetime('now'));
 ";
 
                     // 設定初始版本號為 1
@@ -142,8 +143,9 @@ VALUES
                                 -- 創建臨時表
                                 CREATE TABLE [Members_Temp] (
                                    [MemberId] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                                   [Name] TEXT,
-                                   [Phone] TEXT,
+                                   [Name] TEXT NOT NULL,
+                                   [Phone] TEXT NOT NULL UNIQUE,
+                                   [Birthday] datetime NOT NULL,
                                    [Card_Available_Hours] int,
                                    [Memo] TEXT,
                                    [UpdateUser] TEXT,
@@ -182,12 +184,12 @@ VALUES
                                 ");
 
                                 // 建立預設管理員帳號 (admin/admin)
-                                var defaultPassword = _encryptHelper.SHAEncrypt("admin", ENCRYPT_SALT);
+                                var defaultPassword = _encryptHelper.SHAEncrypt("admin60", ENCRYPT_SALT);
                                 conn.Execute($@"
                                     INSERT INTO [Administrators] 
                                         ([TypeId], [Name], [Account], [Password], [UpdateUser], [UpdateDate])
                                     VALUES 
-                                        (1, '系統管理員', 'admin20', '{defaultPassword}', 'System', datetime('now'))
+                                        (1, '系統管理員', 'admin60', '{defaultPassword}', 'System', datetime('now'))
                                 ");
                             }
 
