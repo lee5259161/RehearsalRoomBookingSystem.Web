@@ -208,7 +208,8 @@ namespace RehearsalRoomBookingSystem.Repository.Implements
                         string updateTransactionQuery = @"
                             UPDATE MemberTransactions 
                             SET RecoverDate = @RecoverDate,
-                                RecoverUser = @RecoverUser
+                                RecoverUser = @RecoverUser,
+                                IsRecovered = 1
                             WHERE TransactionId = @TransactionId";
 
                         var markResult = connection.Execute(

@@ -294,6 +294,22 @@ namespace RehearsalRoomBookingSystem.Web.Controllers
                 Log.Information("開始回復交易記錄。TransactionId: {TransactionId}, MemberId: {MemberId}",
                     parameter.TransactionId, parameter.MemberId);
 
+                // 檢查交易是否存在且尚未被回復
+                var transactions = _memberTransactionsService.GetMemberTransactions(parameter.MemberId);
+                var transaction = transactions.FirstOrDefault(t => t.TransactionId == parameter.TransactionId);
+
+                if (transaction == null)
+                {
+                    Log.Warning("找不到要回復的交易記錄。TransactionId: {TransactionId}", parameter.TransactionId);
+                    return Json(new { success = false, message = "找不到要回復的交易記錄" });
+                }
+
+                if (transaction.IsRecovered)
+                {
+                    Log.Warning("此交易已被回復過。TransactionId: {TransactionId}", parameter.TransactionId);
+                    return Json(new { success = false, message = "此交易已被回復過" });
+                }
+
                 var result = _memberTransactionsService.RecoverTransaction(parameter.TransactionId, parameter.MemberId);
 
                 if (!result.Success)

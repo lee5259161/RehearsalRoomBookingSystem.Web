@@ -339,7 +339,11 @@
                     },
                     success: function (result) {
                         if (result.success) {
+                            // 找到對應的回復按鈕並替換成已回復文字
+                            var $button = $(`button[data-transaction-id="${transactionId}"]`);
+                            $button.replaceWith('<span class="text-muted">已回復</span>');
                             alert('回復成功');
+                            loadTransactions(memberId, currentPage);
                         } else {
                             alert(result.message || '回復失敗');
                         }
@@ -399,14 +403,16 @@
                         row.append($('<td>').text(trans.CreateUser));
 
                         var actionCell = $('<td>');
-                        if (!trans.isRecovered && (trans.TypeId === 1 || trans.TypeId === 2)) {
+                        // 只有當交易未被回復過，且是購買或使用類型時才顯示回復按鈕
+                        if (!trans.IsRecovered && (trans.TypeId === 1 || trans.TypeId === 2)) {
                             var recoverButton = $('<button>')
-                                .addClass('btn btn-sm btn-warning')
-                                .text('回復')
-                                .on('click', function () {
-                                    recoverTransaction(trans.TransactionId, memberId);
-                                });
+                                .addClass('btn btn-sm btn-warning recover-btn')
+                                .attr('data-transaction-id', trans.TransactionId)
+                                .attr('data-member-id', memberId)
+                                .text('回復');
                             actionCell.append(recoverButton);
+                        } else if (trans.IsRecovered) {
+                            actionCell.append($('<span class="text-muted">已回復</span>'));
                         }
                         row.append(actionCell);
                         tbody.append(row);
@@ -520,6 +526,9 @@
                 },
                 success: function (result) {
                     if (result.success) {
+                        // 找到對應的回復按鈕並替換成已回復文字
+                        var $button = $(`button[data-transaction-id="${transactionId}"]`);
+                        $button.replaceWith('<span class="text-muted">已回復</span>');
                         alert('回復成功');
                         loadTransactions(memberId, currentPage);
                     } else {
